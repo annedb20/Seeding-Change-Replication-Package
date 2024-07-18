@@ -46,10 +46,12 @@ States are occasionally grouped by region in the code, justified by either [NASS
 
 ### Scripts
 
-* scripts/1_data_cleaning (link TBD) - Scripts for cleaning loaded data and preparing it for analysis.
+* scripts/1_load_data(link TBD) - Script for loading data from dataverse.
 
-* scripts/2_figures (link TBD) - Scripts for generating figures.
+* scripts/2_data_cleaning (link TBD) - Script for cleaning loaded data and preparing it for analysis.
 
-* scripts/3_tables (link TBD) - Scripts for generating select tables.
+* scripts/3_figures (link TBD) - Scripts for generating figures.
 
-* scripts/4-stats (link TBD) - Scripts for generating select statistics.
+* scripts/4_tables (link TBD) - Scripts for generating select tables.
+
+* scripts/5-stats (link TBD) - Scripts for generating select statistics.
