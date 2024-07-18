@@ -13,7 +13,7 @@ Data and selected code used to assess USDA financial assistance program funding 
 
 ### Data Download
 
-The full data download can be found here (link to Harvard Dataverse to be added).
+The full data download can be found [here](https://doi.org/10.7910/DVN/MMXD4Y).
 
 Contract Download Table - HUP.csv, Contract_Demographic_Download.csv, Contract_Political_Download.csv, Partnership_for_Climate_Smart_Commodities_Projects.xlsx, Practice_Political_Download.csv, and Producer Numbers by State.tab downloaded directly from sources below.
 
@@ -46,12 +46,12 @@ States are occasionally grouped by region in the code, justified by either [NASS
 
 ### Scripts
 
-* scripts/1_load_data(link TBD) - Script for loading data from dataverse.
+* scripts/1-load_data - Script for loading data from dataverse.
 
-* scripts/2_data_cleaning (link TBD) - Script for cleaning loaded data and preparing it for analysis.
+* scripts/2-clean_data - Script for cleaning loaded data and preparing it for analysis.
 
-* scripts/3_figures (link TBD) - Scripts for generating figures.
+* scripts/3-figures - Scripts for generating figures.
 
-* scripts/4_tables (link TBD) - Scripts for generating select tables.
+* scripts/4-tables - Scripts for generating select tables.
 
-* scripts/5-stats (link TBD) - Scripts for generating select statistics.
+* scripts/5-stats - Scripts for generating select statistics.
