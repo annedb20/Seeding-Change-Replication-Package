@@ -28,27 +28,20 @@ Program_Funding_Levels <- Program_Funding_Levels %>%
          program_name = fct_relevel(program_name, "Partnerships for Climate-Smart Commodities (PCSC)", after = 0)) %>% 
   filter(!str_detect(program_name, "ACEP|Rental")) 
 
-## Partnerships for Climate-Smart Commodities
+## PCSC Projects
 # Clean white space and capitalizations from practices 
-Partnerships_for_Climate_Smart_Commodities$`Available Practices` <- 
-  str_replace_all(Partnerships_for_Climate_Smart_Commodities$`Available Practices`, "(^|,|,)\\s*", "\\1")
-Partnerships_for_Climate_Smart_Commodities$`Available Practices` <-
-  str_to_title(Partnerships_for_Climate_Smart_Commodities$`Available Practices`)
+PCSC_Projects$`Available Practices` <- 
+  str_replace_all(PCSC_Projects$`Available Practices`, "(^|,|,)\\s*", "\\1")
+PCSC_Projects$`Available Practices` <-
+  str_to_title(PCSC_Projects$`Available Practices`)
 # Rename column to match NASS
-names(Partnerships_for_Climate_Smart_Commodities)[names(Partnerships_for_Climate_Smart_Commodities) == "States Covered Under Agreement"] <- "State"
+names(PCSC_Projects)[names(PCSC_Projects) == "States Covered Under Agreement"] <- "State"
 
 # Clean white space and capitalizations from commodities
-Partnerships_for_Climate_Smart_Commodities <- Partnerships_for_Climate_Smart_Commodities %>%
+PCSC_Projects <- PCSC_Projects %>%
   mutate(Major_Commodities_Under_Agreement = gsub(",\\s*", ",", `Major Commodities Under Agreement`),
          Major_Commodities_Under_Agreement = str_to_title(Major_Commodities_Under_Agreement)) %>%
   select(-`Major Commodities Under Agreement`)
-
-## PCSC data with HUP
-# Remove unnecessary columns
-PCSC_data_with_HUP_info <- PCSC_data_with_HUP_info %>%
-  select(-`Project Summary`, -`States Covered Under Agreement`, -`Short Agreement Description`,
-         -`Major Commodities Under Agreement`, -`Available Practices`, -`MMRV Highlights`,
-         -`Marketing Highlights`, -`Federal Funding`, -`Non-Federal Match`)
 
 ## Contract Download Table HUP
 # Change column names to lower case
@@ -80,7 +73,7 @@ Contract_Download_Table_HUP$dollars_obligated = gsub( #Remove commas
 Contract_Download_Table_HUP$dollars_obligated <- as.numeric(
   Contract_Download_Table_HUP$dollars_obligated)
 
-## Procuder Numbers by State
+## Producer Numbers by State
 Producer_Numbers_by_State$State <- str_to_title(Producer_Numbers_by_State$State) # Format capitalization
 
 
