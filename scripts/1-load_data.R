@@ -40,9 +40,9 @@ Practice_Political_Download <- get_dataframe_by_name(
 )
 
 # TAB files
-# PCSC_Partner_Types
-PCSC_Partner_Types <- get_dataframe_by_name(
-  filename = "PCSC_Partner_Types.tab",
+# Partnership_for_Climate-Smart_Commodities_Projects
+PCSC_Projects <- get_dataframe_by_name(
+  filename = "Partnership_for_Climate-Smart_Commodities_Projects.tab",
   dataset = "https://doi.org/10.7910/DVN/MMXD4Y",
   server = "dataverse.harvard.edu",
   original = TRUE,
@@ -67,25 +67,7 @@ Program_Funding_and_Outlays <- get_dataframe_by_name(
   .f = readr::read_delim
 )
 
-# XLSX Files
-# Partnerships_for_Climate-Smart_Commodities_Projects
-Partnerships_for_Climate_Smart_Commodities <- get_dataframe_by_name(
-  filename = "Partnership_for_Climate-Smart_Commodities_Projects.xlsx",
-  dataset = "https://doi.org/10.7910/DVN/MMXD4Y",
-  server = "dataverse.harvard.edu",
-  original = TRUE,
-  .f = function(x) {read_xlsx(path = x, sheet = 3)}
-)
-
-# PCSC_data_with_HUP_info
-PCSC_data_with_HUP_info <- get_dataframe_by_name(
-  filename = "PCSC_data_with_HUP_info",
-  dataset = "https://doi.org/10.7910/DVN/MMXD4Y",
-  server = "dataverse.harvard.edu",
-  original = TRUE,
-  .f = function(x) {read_xlsx(path = x, sheet = 3)}
-)
-
+# XLSX File
 # Program_Funding_Levels
 Program_Funding_Levels <- get_dataframe_by_name(
   filename = "Program_Funding_Levels",
