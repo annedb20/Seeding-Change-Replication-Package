@@ -66,4 +66,3 @@ CSAF_yrs <- CSAF_yrs %>%
         format = "latex", digits = 1, booktabs = TRUE, escape = FALSE, align = "lrrr")
 
 print(CSAF_yrs)
-
