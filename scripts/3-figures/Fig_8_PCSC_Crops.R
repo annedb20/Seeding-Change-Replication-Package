@@ -5,7 +5,7 @@ source("2-clean_data.R")
 # Figure 8: Top 15 PCSC Crops by Frequency
 
 # Split States_Covered_Under_Agreements into separate columns for each state
-PCSC_data_split_by_crops <- Partnerships_for_Climate_Smart_Commodities %>%
+PCSC_data_split_by_crops <- PCSC_Projects %>%
   separate_rows(Major_Commodities_Under_Agreement, sep = ",") %>%
   mutate(Major_Commodities_Under_Agreement = trimws(Major_Commodities_Under_Agreement)) %>%
   pivot_wider(names_from = Major_Commodities_Under_Agreement, 
@@ -19,7 +19,7 @@ crop_counts <- PCSC_data_split_by_crops %>%
   select(-`Project Summary`, -`Available Practices`, 
          -`Short Agreement Description`, -State, 
          -`MMRV Highlights`, -`Marketing Highlights`, - `Equity Highlights`, 
-         -`Federal Funding`, -`Non-Federal Match`)
+         -`Federal Funding`, -`Non-Federal Match`, - `Primarily HUP`)
 
 # Sort the result by descending frequency
 frequency_crops <- crop_counts %>%
