@@ -1,8 +1,16 @@
 source("packages.R")
 source("1-load_data.R")
 source("2-clean_data.R")
-source("Fig_4_PCSC_Practices.R")
-source("Fig_7_Total_Dollars.R")
+ 
+# Create function to source other files while bypassing the data download 
+source2 <- function(file, start, end, ...) {
+  file.lines <- scan(file, what=character(), skip=start-1, nlines=end-start+1, sep='\n')
+  file.lines.collapsed <- paste(file.lines, collapse='\n')
+  source(textConnection(file.lines.collapsed), ...)
+}
+
+source2("Fig_4_PCSC_Practices.R", start = 4, end = 59)
+source2("Fig_7_Total_Dollars.R", start = 4, end = 183)
 
 # Table 3: Estimated PCSC Funding
 
@@ -13,7 +21,7 @@ source("Fig_7_Total_Dollars.R")
 # Pull out useful columns
 PCSC_Table <- PCSC_producers_numbers %>%
   group_by(Applicant) %>%
-  mutate(Project_Producer_Number = sum(`Number of Producers`)) %>% # Create variable of total producers per project
+  mutate(Project_Producer_Number = sum(`Number of Producers`)) %>% # Create variable of how many total producers a project might serve
   ungroup() %>%
   group_by(Applicant, State) %>%
   mutate(Percent_State_Project = `Number of Producers`/Project_Producer_Number * 100, # Create variable of percentage of project producers which belong to each state
@@ -33,11 +41,11 @@ PCSC_Table <- PCSC_producers_numbers %>%
          Estimated_PCSC_Nonfed_Match = Sum_Nonfed_Dollars_State)
 
 # Create state frequency dataset by first cleaning the variable
-Partnerships_for_Climate_Smart_Commodities$`State` <- 
-  str_replace_all(Partnerships_for_Climate_Smart_Commodities$`State`, "(^|,|,)\\s*", "\\1")
+PCSC_Projects$`State` <- 
+  str_replace_all(PCSC_Projects$`State`, "(^|,|,)\\s*", "\\1")
 
 # Split States_Covered_Under_Agreements into separate columns for each state
-Partnerships_for_CS_Commodities_data_split <- Partnerships_for_Climate_Smart_Commodities %>%
+Partnerships_for_CS_Commodities_data_split <- PCSC_Projects %>%
   separate_rows(State, sep = ",") %>%
   mutate(State = trimws(State)) %>%
   pivot_wider(names_from = State,
@@ -52,7 +60,9 @@ state_counts <- Partnerships_for_CS_Commodities_data_split %>%
   select(-`Project Summary`, -`Available Practices`, 
          -`Short Agreement Description`, -Major_Commodities_Under_Agreement, 
          -`MMRV Highlights`, -`Marketing Highlights`, - `Equity Highlights`, 
-         -`Federal Funding`, -`Non-Federal Match`)
+         -`Federal Funding`, -`Non-Federal Match`, - `Primarily HUP`,
+         - `Link to Project Website`, - `Actor Type`, - `Agreement found?`, 
+         - `Agreement link`)
 
 # Pivot longer and sort by descending percentage
 percentage_states <- state_counts %>%
