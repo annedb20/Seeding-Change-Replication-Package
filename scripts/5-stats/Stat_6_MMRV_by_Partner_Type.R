@@ -4,16 +4,13 @@ source("2-clean_data.R")
 
 # Stat 6: PCSC Monitoring by Org Type ----
 
-# Merge with PCSC dataset and clean
-PCSC_with_actors <- left_join(Partnerships_for_Climate_Smart_Commodities, PCSC_Partner_Types, by = "Applicant")
-
-PCSC_with_actors <- PCSC_with_actors %>%
-  select(-Notes, - `Agreement found?`, -`Agreement link`)
-
-PCSC_with_actors$`Actor Type` <- gsub("Firm ", "Firm", PCSC_with_actors$`Actor Type`)
+# Clean and rename Actor Type variable
+PCSC_Projects$`Actor Type` <- gsub("Firm ", "Firm", PCSC_Projects$`Actor Type`)
+PCSC_Projects <- PCSC_Projects %>%
+  rename(Actor.Type = `Actor Type`)
 
 # Calculate frequency of different types of actors
-freq_actors <- table(PCSC_with_actors$`Actor Type`) 
+freq_actors <- table(PCSC_Projects$Actor.Type) 
 
 freq_actors_df <- data.frame(freq_actors) %>%
   rename(Actor.Type = Var1)
@@ -39,19 +36,19 @@ phrases_lists <- list(soil_sampling, remote_sensing, life_cycle_assessment,
                       artificial_intelligence, Fieldprint, field_level)
 
 # Create function to count occurrences of phrases
-count_phrases <- function(PCSC_with_actors, phrases_lists) {
+count_phrases <- function(PCSC_Projects, phrases_lists) {
   for (i in seq_along(phrases_lists)) {
     phrases <- phrases_lists[[i]]
     column_name <- paste0("Phrase.Count.", i)
-    PCSC_with_actors[[column_name]] <- sapply(PCSC_with_actors$`MMRV Highlights`, function(text) {
+    PCSC_Projects[[column_name]] <- sapply(PCSC_Projects$`MMRV Highlights`, function(text) {
       as.integer(any(sapply(phrases, (function(phrase) str_count(text, fixed(phrase)))))) 
     })
   }
-  return(PCSC_with_actors)
+  return(PCSC_Projects)
 }
 
 # Run function against data
-PCSC_with_actors_counts <- count_phrases(PCSC_with_actors, phrases_lists)
+PCSC_with_actors_counts <- count_phrases(PCSC_Projects, phrases_lists)
 
 # Create function to aggregate by actor type
 aggregate_phrase_counts <- function(PCSC_with_actors_counts) {
@@ -63,7 +60,7 @@ aggregate_phrase_counts <- function(PCSC_with_actors_counts) {
 # Run function against data
 aggregated_counts <- aggregate_phrase_counts(PCSC_with_actors_counts)
 
-# Rename variables for easier viewing
+# Rename variables for easier viewing and consistency
 aggregated_counts <- aggregated_counts %>%
   rename(Soil_sampling_counts = Total.Phrase.Count.1,
          Remote_sensing_counts = Total.Phrase.Count.2,
