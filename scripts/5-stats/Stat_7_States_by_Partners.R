@@ -1,24 +1,26 @@
 source("packages.R")
 source("1-load_data.R")
 source("2-clean_data.R")
-source("Fig_7_Total_Dollars.R")
-source("Stat_6_MMRV_by_Partner_Type.R")
+
+# Create a function which runs select code without redownloading data
+source2 <- function(file, start, end, ...) {
+  file.lines <- scan(file, what=character(), skip=start-1, nlines=end-start+1, sep='\n')
+  file.lines.collapsed <- paste(file.lines, collapse='\n')
+  source(textConnection(file.lines.collapsed), ...)
+}
+
+source2("Fig_7_Total_Dollars.R", start = 4, end = 184)
+source2("Stat_6_MMRV_by_Partner_Type.R", start = 4, end = 83)
 
 # Stat 7: Avg number of states supported by different types of PCSC partners
-  
-# Create dataset with PCSC actor type and individual rows for states
-PCSC_states_long_with_actors <- merge(PCSC_states_long, PCSC_Partner_Types, by = "Applicant")
 
-# Clean dataset
-PCSC_states_long_with_actors <- PCSC_states_long_with_actors %>%
-  select(-Notes, - `Agreement found?`, -`Agreement link`)
-
-PCSC_states_long_with_actors$`Actor Type` <- gsub("Firm ", "Firm", PCSC_states_long_with_actors$`Actor Type`)
-PCSC_states_long_with_actors <- PCSC_states_long_with_actors %>%
+# Clean PCSC_states_long Actor Type variable
+PCSC_states_long$`Actor Type` <- gsub("Firm ", "Firm", PCSC_states_long_with_actors$`Actor Type`)
+PCSC_states_long <- PCSC_states_long %>%
   rename(Actor.Type = `Actor Type`)
 
 # Find total numbers of states supported by each applicant
-PCSC_states_count_by_applicant <- PCSC_states_long_with_actors %>%
+PCSC_states_count_by_applicant <- PCSC_states_long %>%
   group_by(Applicant, Actor.Type) %>%
   summarize(Unique.States.Supported = n_distinct(State))
 
