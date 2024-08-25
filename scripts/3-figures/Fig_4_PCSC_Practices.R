@@ -5,10 +5,10 @@ source("2-clean_data.R")
 # Figure 4: Top 15 PCSC Practices
 
 # Calculate total number of projects (labeled "Applicant" in the data)
-total_applicants <- n_distinct(Partnerships_for_Climate_Smart_Commodities$Applicant)
+total_applicants <- n_distinct(PCSC_Projects$Applicant)
 
 # Split Available_Practices into separate columns for each practice
-Partnerships_for_CS_Commodities_data_split <- Partnerships_for_Climate_Smart_Commodities %>%
+Partnerships_for_CS_Commodities_data_split <- PCSC_Projects %>%
   rename(Available_Practices = 'Available Practices') %>% # Rename for easier manipulation
   separate_rows(Available_Practices, sep = ",") %>% # Create different rows
   pivot_wider(names_from = Available_Practices, values_from = Available_Practices, # Change into columns
