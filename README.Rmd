@@ -43,6 +43,9 @@ Contract Download Table downloaded from first dataset on Download tab of the web
 
 States are occasionally grouped by region in the code, justified by either [NASS regions](https://www.nass.usda.gov/Statistics_by_State/RFO/index.php) or [USDA IRA Data Visualization Tool regions] (https://publicdashboards.dl.usda.gov/t/FPAC_PUB/views/InflationReductionActDataVisualizationTool/IRAEndofYearReport?%3Aembed=y&%3AisGuestRedirectFromVizportal=y).
 
+### Coding Credit
+
+"source2" function borrowed from Matthew Plourde on Stack Overflow [here](https://stackoverflow.com/questions/12214963/source-only-part-of-a-file).
 
 ### Scripts
 
