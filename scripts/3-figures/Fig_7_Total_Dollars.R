@@ -59,7 +59,7 @@ historical_dollar_totals_per_state <-
   select(-contract_count, -treated_acres)
 
 # Separate states into their own rows and clean names for merging with NASS data
-PCSC_states_long <- separate_rows(Partnerships_for_Climate_Smart_Commodities, State, sep = ",")
+PCSC_states_long <- separate_rows(PCSC_Projects, State, sep = ",")
 PCSC_states_long <- PCSC_states_long %>% # Some data lost for Tribal and territories since not currently included by NASS
   mutate(State = case_when(State == "AL" ~ "Alabama", State == "AZ" ~ "Arizona", 
                            State == "AR" ~ "Arkansas", State == "AK" ~ "Alaska", 
