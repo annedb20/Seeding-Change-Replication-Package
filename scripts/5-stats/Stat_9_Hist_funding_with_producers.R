@@ -1,7 +1,15 @@
 source("packages.R")
 source("1-load_data.R")
 source("2-clean_data.R")
-source("Tab_3_PCSC_Funding.R")
+
+# Create a function which will run select code without redownloading data 
+source2 <- function(file, start, end, ...) {
+  file.lines <- scan(file, what=character(), skip=start-1, nlines=end-start+1, sep='\n')
+  file.lines.collapsed <- paste(file.lines, collapse='\n')
+  source(textConnection(file.lines.collapsed), ...)
+}
+
+source2("Tab_3_PCSC_Funding.R", start = 4, end = 167)
 
 # Statistic 9: Historical funding by state, viewed with producer numbers
 
