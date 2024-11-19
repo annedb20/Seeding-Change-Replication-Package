@@ -18,11 +18,17 @@ program_funding_plot <- ggplot(data = Program_Funding_and_Outlays,
                                "EQIP IRA" = "#2ca25f",
                                "RCPP Farm Bill" = "#efedf5",
                                "CSP Farm Bill" = "#bcbddc",
-                               "EQIP Farm Bill" = "#756bb1")) +
+                               "EQIP Farm Bill" = "#756bb1"),
+                    labels = c("Regional Conservation Partnership Program IRA", 
+                                "Conservation Stewardship Program IRA",
+                                "Environmental Quality Incentives Program IRA",
+                                "Regional Conservation Partnership Program Farm Bill",
+                                "Conservation Stewardship Program Farm Bill",
+                                "Environmental Quality Incentives Program Farm Bill") +
   # Add text labelling IRA and Farm Bill categories
   annotate("text", x = 2029, y = 1, label = "Farm Bill Funding", hjust = 0.5,
            vjust = 1, color = "white", size = 7, angle = 0) +
-  annotate("text", x = 2029, y = 4, label = "IRA Funding", hjust = 0.5, 
+  annotate("text", x = 2029, y = 4, label = "Inflation Reduction Act Funding", hjust = 0.5, 
            vjust = 1, color = "white", size = 7, angle = 0) +
   # Year labels starting from 2023 and every two years thereafter
   scale_x_continuous(breaks = seq(min(Program_Funding_and_Outlays$Year), 
