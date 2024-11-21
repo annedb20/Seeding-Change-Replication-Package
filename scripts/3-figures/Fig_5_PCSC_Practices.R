@@ -2,7 +2,7 @@ source("packages.R")
 source("1-load_data.R")
 source("2-clean_data.R")
 
-# Figure 4: Top 15 PCSC Practices
+# Figure 5: Top 15 PCSC Practices
 
 # Calculate total number of projects (labeled "Applicant" in the data)
 total_applicants <- n_distinct(PCSC_Projects$Applicant)
@@ -43,6 +43,9 @@ practice_counts <- Partnerships_for_CS_Commodities_data_split %>%
          -`223 Forest Management Assessment`,
          -`218 Carbon Sequestration And Greenhouse Gas Mitigation Assessment`)
 
+# Remove practice codes 
+colnames(practice_counts) <- gsub("\\d+", "", colnames(practice_counts))
+
 # Sort in descending order of frequency
 frequency_practices <- practice_counts %>%
   pivot_longer(cols = everything(), names_to = "Practice", values_to = "Count") %>%
@@ -53,7 +56,7 @@ PCSC_frequency_practices_plot <- frequency_practices %>%
   slice(1:15) %>% # Take top 15
   ggplot(aes(x = Count, y = reorder(Practice, Count))) + 
   geom_bar(stat = "identity", fill = "skyblue") + 
-  theme_minimal(base_size = 16) +
+  theme_minimal(base_size = 20) +
   labs(title = "Top 15 PCSC Practices by Frequency",
        x = "Number of PCSC Projects for which a Practice is Eligible", y = "")
 
