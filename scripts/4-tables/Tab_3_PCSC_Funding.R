@@ -9,7 +9,7 @@ source2 <- function(file, start, end, ...) {
   source(textConnection(file.lines.collapsed), ...)
 }
 
-source2("Fig_4_PCSC_Practices.R", start = 4, end = 59)
+source2("Fig_4_PCSC_Practices.R", start = 4, end = 62)
 source2("Fig_7_Total_Dollars.R", start = 4, end = 183)
 
 # Table 3: Estimated PCSC Funding
