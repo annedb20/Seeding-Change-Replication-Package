@@ -15,7 +15,11 @@ historical_dollar_totals_per_state <-
          suppressed != "TRUE",
          obligation_fy == "Total",
          !program %in% c("AWEP", "AMA", "WHIP")) %>% 
-  # Creater broader program values
+# Due to lack of contract_status column, must filter for max of contract_count in order to filter for "Total" as contract_status
+  group_by(state, program, obligation_fy) %>%
+  filter(contract_count == max(contract_count)) %>%
+  ungroup() %>%   
+# Creater broader program values
   mutate(
     program_short = case_when(
       str_detect(program, "RCPP") ~ "RCPP",
@@ -25,10 +29,6 @@ historical_dollar_totals_per_state <-
       TRUE ~ program)) %>% # Keep the original value if no match
   select(-program) %>%
   rename(program = program_short) %>%
-  # Due to lack of contract_status column, must filter for max of contract_count in order to filter for "Total" as contract_status
-  group_by(state, program, obligation_fy) %>%
-  filter(contract_count == max(contract_count)) %>%
-  ungroup() %>% 
   # Find totals dollars obligated for each state from historical programs
   group_by(state) %>%
   select(state, program, dollars_obligated, contract_count, treated_acres) %>% 
