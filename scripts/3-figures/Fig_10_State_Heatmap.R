@@ -202,7 +202,7 @@ top_practice_codes_plot <-ggplot(top_practice_codes, aes(x = ranking, y = state,
         legend.title = element_text(size = 10), legend.text = element_text(size = 9),
         axis.title.x = element_text(size = 11), strip.text = element_text(size = 11),
         legend.position = "bottom") +
-  labs(title = "Heatmap of Top 5 Practice Types by State", 
+  labs(title = "Top 5 Practice Types by State", 
        x = "Practice Code Rank", y = "", fill = "Practice Type")
 
 top_practice_codes_plot
