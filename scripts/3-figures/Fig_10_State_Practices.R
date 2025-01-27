@@ -2,7 +2,7 @@ source("packages.R")
 source("1-load_data.R")
 source("2-clean_data.R")
 
-# Figure 10: Heatmap of Top 5 Practice Types by State ----
+# Figure 10: Top 5 Practice Types by State ----
 
 # Create dataset with state- and practice-specific information, excluding CSP Annual Payments
 state_practices_all <- Practice_Political_Download %>%
@@ -188,7 +188,7 @@ top_practice_codes <- top_practice_codes %>%
   mutate(region = factor(region, levels = c("Northeast", "Southeast", "Central",
                                             "West", "Is. Terr.")))
 
-# Create heatmap
+# Create plot
 top_practice_codes_plot <-ggplot(top_practice_codes, aes(x = ranking, y = state, 
                                                          fill = practice_type, 
                                                          group = region)) +
