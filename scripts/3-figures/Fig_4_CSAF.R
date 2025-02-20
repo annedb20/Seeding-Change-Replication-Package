@@ -64,25 +64,25 @@ CSAF_yrs <- CSAF_yrs %>%
   select(-total_dollars_ob_fy, -CS_dollars_ob_fy) %>%
   mutate(Other = total_dollars_ob_fy_bil - CS_dollars_ob_fy_bil) %>%
   select(-total_dollars_ob_fy_bil) %>%
-  rename(CSAF = CS_dollars_ob_fy_bil)
+  rename(`Climate-Smart Agriculture and Forestry` = CS_dollars_ob_fy_bil)
 
 # Pivot longer
 CSAF_yrs <- CSAF_yrs %>%
-  pivot_longer(cols = c("Other", "CSAF"),
+  pivot_longer(cols = c("Other", "Climate-Smart Agriculture and Forestry"),
                names_to = "type", values_to = "dollars")
 
 # Create stacked bar chart
 CS_graph <- ggplot(CSAF_yrs, aes(x = factor(obligation_fy), y = dollars, 
                                  fill = factor(type, levels = c("Other",
-                                                                "CSAF")))) + 
+                                                                "Climate-Smart Agriculture and Forestry")))) + 
   geom_bar(stat = "identity", position = "stack") +
-  geom_text(data = subset(CSAF_yrs, type == "CSAF"), 
+  geom_text(data = subset(CSAF_yrs, type == "Climate-Smart Agriculture and Forestry"), 
             aes(label = sprintf("%.2f", percent_CS)), # Label with percentage CSAF, limiting to two digits after decimal
-            vjust = -0.5, color = "black") +
+            vjust = -0.5, color = "black", size = 5) +
   scale_x_discrete() + # Show each unique year on x-axis
   labs(x = "Year", y = "Dollars in Billions", fill = "Practices Supported", 
        title = "Historical Share of Support for CSAF Practices") + 
-  theme_minimal(base_size = 16) +
+  theme_minimal(base_size = 20) +
   theme(legend.position = "bottom")
 
 CS_graph
