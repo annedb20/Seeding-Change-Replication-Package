@@ -180,6 +180,7 @@ All_Programs_Total_Dollars_Plot <- All_Programs_Total_Dollars %>%
   facet_grid(region ~ ., scales = "free_y", space = "free") + # Separate graph by region
   theme_minimal(base_size = 18) + # Increase font size of all elements
   theme(axis.text.y = element_text(angle = 0, hjust = 1), legend.position = "bottom") +
-  scale_x_continuous(labels = scales::label_comma(), breaks = c(0, 500, 1000)) 
+  scale_x_continuous(labels = scales::label_comma(), breaks = c(0, 500, 1000)) +
+  guides(fill = guide_legend(nrow = 2))
 
 All_Programs_Total_Dollars_Plot
