@@ -199,9 +199,11 @@ top_practice_codes_plot <-ggplot(top_practice_codes, aes(x = ranking, y = state,
   # Adjust font sizes for legibility
   theme(plot.title = element_text(size = 16),
         axis.text.y = element_text(size = 10), axis.text.x = element_text(size = 10),
-        legend.title = element_text(size = 10), legend.text = element_text(size = 9),
+        legend.title = element_text(size = 9), legend.text = element_text(size = 8),
         axis.title.x = element_text(size = 11), strip.text = element_text(size = 11),
-        legend.position = "bottom") +
+        legend.position = "bottom", legend.key.size = unit(3, 'mm'),
+        legend.key.width = unit(3, 'mm')) +
+  guides(fill = guide_legend(nrow=5)) +
   labs(title = "Top 5 Practice Types by State", 
        x = "Practice Code Rank", y = "", fill = "Practice Type")
 
