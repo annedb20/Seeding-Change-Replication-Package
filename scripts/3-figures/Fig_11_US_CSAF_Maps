@@ -1,0 +1,350 @@
+################## 1. LOAD PACKAGES AND DATA #################
+
+# Working directory must be set to location of these source files
+
+source("packages.R")
+source("1-load_data.R") # Loads NRCS financial data
+source("2-clean_data.R")
+
+# Other relevant packages (will update the packages file)
+library(sf)
+library(patchwork)
+library(data.table)
+
+# Set up file paths
+my_file_path <- if(Sys.info()["user"] == "annedb20"){"/Users/annedb20/csa/"
+} else {
+  #TODO: add file path here for other user
+}
+data_path <- function(x){paste0(my_file_path, x)}
+
+# Load in census data
+Census_Cover_Crop <- fread(data_path(paste0("census_cover_crop.csv"))) %>%
+  as.data.frame() %>%
+  clean_names()
+Census_Tillage <- fread(data_path(paste0("census_reduced_and_no_till.csv"))) %>%
+  as.data.frame() %>%
+  clean_names()
+Census_Cropland_Acres <- fread(data_path(paste0("census_total_cropland_acres.csv"))) %>%
+  as.data.frame() %>%
+  clean_names()
+Census_No._Crop_Operations <- fread(data_path(paste0("census_no._operations.csv"))) %>%
+  as.data.frame() %>%
+  clean_names()
+
+# Load in US county geometries
+us_counties <- read_sf(data_path(paste0("gz_2010_us_050_00_5m.json")))
+
+################## 2. CLEAN DATA AND PRODUCE MERGED FILE WITH FUNDING INFO #################
+
+# Merge practices
+Census_Practices <- merge(Census_Cover_Crop, Census_Tillage, all = TRUE)
+
+# Make practice values numeric
+Census_Practices$value <- gsub(",", "", Census_Practices$value)
+Census_Practices$value <- as.numeric(Census_Practices$value)
+
+# Manually input County fips codes for Alaskan counties
+Census_Practices <- Census_Practices %>%
+  mutate(county_ansi = case_when(state == "ALASKA" & county == "KENAI PENINSULA" ~ 122, 
+                                 state == "ALASKA" & county == "ANCHORAGE" ~ 020,
+                                 state == "ALASKA" & county == "JUNEAU" ~ 110,
+                                 state == "ALASKA" & county == "ALEUTIAN ISLANDS" ~ 010,
+                                 state == "ALASKA" & county == "FAIRBANKS NORTH STAR" ~ 090,
+                                 TRUE ~ county_ansi))
+
+# Extract acreage
+Census_Cropland_Acres <- Census_Cropland_Acres %>%
+  select(year, state, county, value) %>%
+  rename(crop_acre_number = value)
+
+# Make acres numeric
+Census_Cropland_Acres$crop_acre_number <- gsub(",", "", Census_Cropland_Acres$crop_acre_number)
+Census_Cropland_Acres$crop_acre_number <- as.numeric(Census_Cropland_Acres$crop_acre_number)
+# NAs introduced where acreage was too small to disclose for privacy reasons
+
+# Extract number of operations
+Census_No._Crop_Operations <- Census_No._Crop_Operations %>%
+  select(year, state, county, value) %>%
+  rename(no._crop_operations = value)
+
+# Make no. operations numeric
+Census_No._Crop_Operations$no._crop_operations <- gsub(",", "", Census_No._Crop_Operations$no._crop_operations)
+Census_No._Crop_Operations$no._crop_operations <- as.numeric(Census_No._Crop_Operations$no._crop_operations)
+
+# Include cropland acreage and operations data with practice data
+Census_Practices <- Census_Practices %>%
+  left_join(Census_Cropland_Acres, by = c("state", "county", "year")) %>%
+  left_join(Census_No._Crop_Operations, by = c("state", "county", "year")) %>%
+  # Clean census practice data
+  # Remove unnecessary columns
+  select(-program, -period, -week_ending, -ag_district, 
+         -ag_district_code, -zip_code, -region, -watershed_code, 
+         -watershed, -commodity, -domain, -domain_category, -cv_percent) %>%
+  # Manage capitalization
+  mutate(state = str_to_title(state),
+         county = str_to_title(county),
+         # Manage practice names for easier reading
+         data_item = case_when(data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, (EXCL NO-TILL) - ACRES" ~ "reduced_tillage_acres",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, (EXCL NO-TILL) - AREA, MEASURED IN ACRES / OPERATION" ~ "reduced_tillage_acres/operation",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, (EXCL NO-TILL) - NUMBER OF OPERATIONS" ~ "reduced_tillage_no._operations",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, NO-TILL - ACRES" ~ "no_till_acres",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, NO-TILL - AREA, MEASURED IN ACRES / OPERATION" ~ "no_till_acres/operation",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, NO-TILL - NUMBER OF OPERATIONS" ~ "no_till_no._operations",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, COVER CROP PLANTED, (EXCL CRP) - ACRES" ~ "cover_crop_acres",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, COVER CROP PLANTED, (EXCL CRP) - AREA, MEASURED IN ACRES / OPERATION" ~ "cover_crop_acres/operation",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, COVER CROP PLANTED, (EXCL CRP) - NUMBER OF OPERATIONS" ~ "cover_crop_no._operations")) %>%
+  rename(county_name = county,
+         practice_and_unit = data_item) %>%
+  # Pivot wider to make each practice their own column
+  pivot_wider(names_from = practice_and_unit, values_from = value) %>%
+  # Make practice acres/total cropland acres variables,repeat for number of operations
+  mutate(pct_cropland_reduced_tillage = (reduced_tillage_acres / crop_acre_number * 100),
+         pct_cropland_no_till = (no_till_acres / crop_acre_number * 100),
+         pct_cropland_cover_crop = (cover_crop_acres / crop_acre_number * 100),
+         pct_crop_operations_reduced_tillage = (reduced_tillage_no._operations / no._crop_operations * 100),
+         pct_crop_operations_no_till = (no_till_no._operations / no._crop_operations * 100),
+         pct_crop_operations_cover_crop = (cover_crop_no._operations / no._crop_operations * 100))
+
+# Clean Practice_Political_Download for joining
+Practice_Funding <- Practice_Political_Download %>%
+  filter(geography_level == "County",
+         # Filter for relevant practice codes and enhancements on them
+         grepl("340|329|345", practice_code),
+         obligation_fy != "Total",
+         suppressed == "FALSE") %>%
+  mutate(practice_group = case_when(
+    grepl("340", practice_code) ~ "Cover Crop", 
+    grepl("329", practice_code) ~ "No Till",
+    grepl("345", practice_code) ~ "Reduced Tillage",
+    TRUE ~ NA_character_
+  )) %>% 
+  # Sum program funding and count totals
+  group_by(state, county_name) %>%
+  mutate(total_funding_reduced_tillage_2017 = sum(
+    dollars_obligated[obligation_fy <=2017 & practice_group == "Reduced Tillage"]),
+    total_funding_no_till_2017 = sum(
+      dollars_obligated[obligation_fy <= 2017 & practice_group == "No Till"]),
+    total_funding_cover_crop_2017 = sum(
+      dollars_obligated[obligation_fy <= 2017 & practice_group == "No Till"]),
+    total_funding_reduced_tillage_2022 = sum(
+      dollars_obligated[obligation_fy <=2022 & practice_group == "Reduced Tillage"]),
+    total_funding_no_till_2022 = sum(
+      dollars_obligated[obligation_fy <= 2022 & practice_group == "No Till"]),
+    total_funding_cover_crop_2022 = sum(
+      dollars_obligated[obligation_fy <= 2022 & practice_group == "Cover Crop"])) %>%
+  ungroup() %>%
+  # Remove unnecessary columns (certification fiscal year all NA for selected information)
+  select(-...1, -certification_fy, -suppressed) %>%
+  # Rename year for merging
+  rename(year = obligation_fy)
+
+# Make year variable integer for merging
+Practice_Funding$year <- as.integer(Practice_Funding$year)
+
+# Join practice funding data with practice uptake data
+Practice_Funding_and_Uptake <- left_join(Census_Practices, Practice_Funding,
+                                         by = c("state", "county_name", "year"))
+
+write.csv(Practice_Funding_and_Uptake, "Practice_Funding_and_Uptake.csv")
+
+################### 3. CLEAN DATA FOR MERGING AND MAPPING ######################
+
+# Reduce and clean Practice_Funding_and_Uptake for merging
+
+CSAF_adopt_fund_small <- Practice_Funding_and_Uptake %>%
+  filter(year == 2022) %>%
+  # Select relevant columns
+  select(state, state_ansi, county_name, county_ansi, reduced_tillage_acres, 
+         no_till_acres, cover_crop_acres, pct_cropland_reduced_tillage, 
+         pct_cropland_no_till, pct_cropland_cover_crop,
+         total_funding_reduced_tillage_2022, total_funding_no_till_2022,
+         total_funding_cover_crop_2022) %>%
+  distinct() %>%
+  mutate(
+    # Get state and county code variables ready for merging
+    state_ansi = sprintf("%02d", state_ansi),
+    county_ansi = sprintf("%03d", county_ansi),
+    state_ansi = as.character(state_ansi),
+    county_ansi = as.character(county_ansi),
+    # Transform funding variables to thousands
+    total_funding_reduced_tillage_2022 = total_funding_reduced_tillage_2022/1000000,
+    total_funding_no_till_2022 = total_funding_no_till_2022/1000000,
+    total_funding_cover_crop_2022 = total_funding_cover_crop_2022/1000000) %>%
+  rename(STATE = state_ansi,
+         COUNTY = county_ansi) 
+
+# Shift locations and sizes of Alaska and Hawaii
+
+#Extract geometries and centroids
+alaska <- us_counties %>%
+  filter(STATE %in% "02")
+alaska_g <- st_geometry(alaska)
+alaska_centroid <- st_centroid(st_union(alaska_g))
+
+hawaii <- us_counties %>%
+  filter(STATE %in% "15")
+hawaii_g <- st_geometry(hawaii)
+hawaii_centroid <- st_centroid(st_union(hawaii_g))
+
+# Rotation function
+rot <- function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
+
+# Transform state geometries
+
+# Decrease Alaska size and set it under the continental US
+alaska_trans <- (alaska_g - alaska_centroid) * rot(-1 * pi/180) / 2.3 + alaska_centroid + c(35, -40)
+alaska <- alaska %>% st_set_geometry(alaska_trans) %>% st_set_crs(st_crs(us_counties))
+
+# Set Hawaii under continental US
+hawaii_trans <- (hawaii_g - hawaii_centroid) * rot(-35 * pi/180) + hawaii_centroid + c(53, 4)
+hawaii <- hawaii %>% st_set_geometry(hawaii_trans) %>% st_set_crs(st_crs(us_counties))
+
+us_counties_final <- us_counties %>%
+  filter(!STATE %in% c('02', '15', '72', '')) %>%
+  rbind(alaska) %>%
+  rbind(hawaii)
+
+# Now let's merge the two!
+us_counties_CSAF <- merge(us_counties_final, CSAF_adopt_fund_small, all = TRUE)
+
+#################### 4. MAPPING #########################
+
+####### Get state borders in
+# Load file
+state_borders <- read_sf(data_path(paste0("gz_2010_us_040_00_5m.json")))
+
+# Apply code to HI/AL locations 
+alaska <- state_borders %>%
+  filter(STATE %in% "02")
+alaska_g <- st_geometry(alaska)
+alaska_centroid <- st_centroid(st_union(alaska_g))
+
+hawaii <- state_borders %>%
+  filter(STATE %in% "15")
+hawaii_g <- st_geometry(hawaii)
+hawaii_centroid <- st_centroid(st_union(hawaii_g))
+
+# Rotation function
+rot <- function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
+
+# Transform state geometries
+
+# Decrease Alaska size and set it under the continental US
+alaska_trans <- (alaska_g - alaska_centroid) * rot(-1 * pi/180) / 2.3 + alaska_centroid + c(35, -40)
+alaska <- alaska %>% st_set_geometry(alaska_trans) %>% st_set_crs(st_crs(state_borders))
+
+# Set Hawaii under continental US
+hawaii_trans <- (hawaii_g - hawaii_centroid) * rot(-35 * pi/180) + hawaii_centroid + c(53, 4)
+hawaii <- hawaii %>% st_set_geometry(hawaii_trans) %>% st_set_crs(st_crs(state_borders))
+
+state_borders_final <- state_borders %>%
+  filter(!STATE %in% c('02', '15', '72', '')) %>%
+  rbind(alaska) %>%
+  rbind(hawaii)
+
+# Free Scales Version
+#facet_wrap does not accept free scales with coord_sf, so we have to go about it a different way
+us_counties_pct_red_till <- ggplot(us_counties_CSAF, aes(
+  color = pct_cropland_reduced_tillage,
+  fill = pct_cropland_reduced_tillage)) +
+  geom_sf() +
+  scale_color_gradientn(colors = viridis::viridis(100, begin = 0, end = 1, direction = 1),
+                        aesthetics = c("fill"
+                                       , "color"
+                        ),
+                        name = "Percent of County Cropland Adopting Practice",
+                        na.value = "#000000") +
+  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
+  theme_void() + 
+  labs(title = "Reduced Tillage") +
+  theme(legend.position = "bottom", plot.title = element_text(size = 20, hjust = 0.5))
+
+us_counties_pct_no_till <- ggplot(us_counties_CSAF, aes(
+  color = pct_cropland_no_till,
+  fill = pct_cropland_no_till)) +
+  geom_sf() +
+  scale_color_gradientn(colors = viridis::viridis(100, begin = 0, end = 1, direction = 1),
+                        aesthetics = c("fill",
+                                       "color"
+                        ),
+                        name = "Percent of County Cropland Adopting Practice",
+                        na.value = "#000000") +
+  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
+  theme_void() + 
+  labs(title = "No Till") +
+  theme(legend.position = "bottom", plot.title = element_text(size = 20, hjust = 0.5))
+
+us_counties_pct_cov_crop <- ggplot(us_counties_CSAF, aes(
+  color = pct_cropland_cover_crop,
+  fill = pct_cropland_cover_crop)) +
+  geom_sf() +
+  scale_color_gradientn(colors = viridis::viridis(100, begin = 0, end = 1, direction = 1),
+                        aesthetics = c("fill",
+                                       "color"
+                        ),
+                        name = "Percent of County Cropland Adopting Practice",
+                        na.value = "#000000") +
+  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
+  theme_void() + 
+  labs(title = "Cover Crop") +
+  theme(legend.position = "bottom", plot.title = element_text(size = 20, hjust = 0.5))
+
+us_counties_fund_red_till <- ggplot(us_counties_CSAF, aes(
+  color = total_funding_reduced_tillage_2022,
+  fill = total_funding_reduced_tillage_2022)) +
+  geom_sf() +
+  scale_color_gradientn(colors = viridis::viridis(100, begin = 0, end = 1, direction = 1),
+                        aesthetics = c("fill"
+                                       , "color" 
+                        ),
+                        name = "Funding in Millions",
+                        na.value = "#000000") +
+  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
+  theme_void() + 
+  labs(title = "") +
+  theme(legend.position = "bottom")
+
+us_counties_fund_no_till <- ggplot(us_counties_CSAF, aes(
+  color = total_funding_no_till_2022,
+  fill = total_funding_no_till_2022)) +
+  geom_sf() +
+  scale_color_gradientn(colors = viridis::viridis(100, begin = 0, end = 1, direction = 1),
+                        aesthetics = c("fill"
+                                       , "color"
+                        ),
+                        name = "Funding in Millions",
+                        na.value = "#000000") +
+  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
+  theme_void() + 
+  labs(title = "") +
+  theme(legend.position = "bottom")
+
+us_counties_fund_cov_crop <- ggplot(us_counties_CSAF, aes(
+  color = total_funding_cover_crop_2022,
+  fill = total_funding_cover_crop_2022)) +
+  geom_sf() +
+  scale_color_gradientn(colors = viridis::viridis(100, begin = 0, end = 1, direction = 1),
+                        aesthetics = c("fill"
+                                       , "color"
+                        ),
+                        name = "Funding in Millions",
+                        na.value = "#000000") +
+  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
+  theme_void() + 
+  labs(title = "") +
+  theme(legend.position = "bottom")
+
+patch_pct <- us_counties_pct_cov_crop + us_counties_pct_no_till + us_counties_pct_red_till
+
+patch_fund <- us_counties_fund_cov_crop + us_counties_fund_no_till + us_counties_fund_red_till
+
+patch_all <- patch_pct / patch_fund
+
+patch_all
