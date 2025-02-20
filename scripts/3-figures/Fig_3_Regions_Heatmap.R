@@ -77,16 +77,42 @@ top_practice_codes_12_regions <- top_practice_codes_12_regions %>%
 # Add practice categories and abbreviations for better graph legibility
 top_practice_codes_12_regions <- top_practice_codes_12_regions %>%
   # Authors sorted practices into the following categories based off of practice descriptions 
-  mutate(practice_type = case_when(practice_name %in% c("Clearing and Snagging",
+ mutate(practice_type = case_when(practice_name %in% c("Clearing and Snagging",
                                                         "Grade Stabilization Structure",
                                                         "Stream Habitat Improvement and Management",
-                                                        "Streambank and Shoreline Protection") ~
-                                     "Surface Water Improvement",
+                                                        "Streambank and Shoreline Protection",
+                                                        "Pond Sealing or Lining - Concrete",
+                                                        "Irrigation Land Leveling", 
+                                                        "Irrigation Pipeline",
+                                                        "Irrigation Reservoir",
+                                                        "Irrigation System, Microirrigation",
+                                                        "Sprinkler System",
+                                                        "Livestock Pipeline", 
+                                                        "Watering Facility",
+                                                        "Pumping Plant", 
+                                                        "Water Well", 
+                                                        "Structure for Water Control", 
+                                                        "Underground Outlet",
+                                                        "Bivalve Aquaculture Gear and Biofouling Control") ~ "Water Mgmt and Aquatic Habitat",
                                    practice_name %in% c("Animal Mortality Facility", 
                                                         "Composting Facility", 
                                                         "Waste Storage Facility",
-                                                        "Waste Transfer") ~ 
-                                     "Waste Disposal",
+                                                        "Waste Transfer",
+                                                        "Reduce risk of pesticides in surface water by utilizing precision pesticide application techniques",
+                                                        "Reduce risks of nutrient losses to surface water by utilizing precision ag technologies",
+                                                        "Improving nutrient uptake efficiency and reducing risk of nutrient losses",
+                                                        "Nutrient Management",
+                                                        "Agrichemical Handling Facility",
+                                                        "Pest Management Conservation System") ~ "Waste Mgmt and Chemical Control",
+                                   practice_name %in% c("Energy Efficient Agricultural Operation", 
+                                                        "Energy Efficient Building Envelope",
+                                                        "Fence", 
+                                                        "Trails and Walkways", 
+                                                        "Roofs and Covers", 
+                                                        "High Tunnel System",
+                                                        "Access Road",
+                                                        "Combustion System Improvement",
+                                                        "Obstruction Removal") ~ "Infrastructure and Energy Efficiency",
                                    practice_name %in% c("Early Successional Habitat Development-Mgt", 
                                                         "Brush Management", 
                                                         "Herbaceous Weed Treatment",
@@ -95,64 +121,21 @@ top_practice_codes_12_regions <- top_practice_codes_12_regions %>%
                                                         "Planting for high carbon sequestration rate", 
                                                         "Pasture and Hay Planting", 
                                                         "Range Planting",
-                                                        "Restoration of Rare or Declining Natural Communities") ~
-                                     "Vegetation Management to Enhance Soil and Habitat",
-                                   practice_name %in% c("Cropland Annual Payment", 
-                                                        "Non-Industrial Private Forest Land Annual Payment",
-                                                        "Pasture Annual Payment",
-                                                        "Pastured Cropland Annual Payment",
-                                                        "Rangeland Annual Payment") ~ 
-                                     "Annual Payments",
-                                   practice_name %in% c("Energy Efficient Agricultural Operation", 
-                                                        "Energy Efficient Building Envelope") ~ 
-                                     "Energy Efficient Activity",
-                                   practice_name %in% c("Existing Activity Payment-Land Use",
-                                                        "Existing Activity Payment-Resource Concern") ~ 
-                                     "Existing Activity Payment",
-                                   practice_name %in% c("Fence", 
-                                                        "Trails and Walkways", 
-                                                        "Roofs and Covers", 
-                                                        "High Tunnel System",
-                                                        "Terrace") ~ 
-                                     "Functional Infrastructure",
+                                                        "Restoration of Rare or Declining Natural Communities",
+                                                        "Prescribed Burning",
+                                                        "Incorporating wildlife refuge areas in contingency plans for wildlife.",
+                                                        "Prescribed Grazing",
+                                                        "Grassland Conservation Initiative") ~ "Vegetation and Habitat Mgmt",
                                    practice_name %in% c("Heavy Use Area Protection", 
-                                                        "Mulching") ~ 
-                                     "Ground Cover (excluding crops)",
-                                   practice_name %in% c("Incorporating wildlife refuge areas in contingency plans for wildlife.",
-                                                        "Prescribed Grazing") ~ 
-                                     "Grazing Plans",
-                                   practice_name %in% c("Irrigation Land Leveling", 
-                                                        "Irrigation Pipeline",
-                                                        "Irrigation Reservoir",
-                                                        "Irrigation System, Microirrigation",
-                                                        "Sprinkler System") ~ 
-                                     "Irrigation",
-                                   practice_name %in% c("Livestock Pipeline", 
-                                                        "Watering Facility") ~ 
-                                     "Watering Livestock",
-                                   practice_name %in% c("Pumping Plant", 
-                                                        "Water Well", 
-                                                        "Structure for Water Control", 
-                                                        "Underground Outlet") ~ 
-                                     "Water Access",
-                                   practice_name %in% c("Reduce risk of pesticides in surface water by utilizing precision pesticide application techniques",
-                                                        "Reduce risks of nutrient losses to surface water by utilizing precision ag technologies",
-                                                        "Nutrient Management") ~ 
-                                     "Nutrient Control",
+                                                        "Mulching",
+                                                        "Residue and Tillage Management, Reduced Till",
+                                                        "Residue and Tillage Management, No Till",
+                                                        "Terrace") ~
+                                     "Soil and Till Mgmt",
                                    practice_name %in% c("Tree/Shrub Establishment", 
                                                         "Tree/Shrub Site Preparation",
                                                         "Forest Stand Improvement",
-                                                        "Woody Residue Treatment") ~ 
-                                     "Tree and Forestry Management",
-                                   practice_name == "Bivalve Aquaculture Gear and Biofouling Control" ~ 
-                                     "Aquaculture",
-                                   practice_name == "Combustion System Improvement" ~ 
-                                     "Combustion System Improvement",
-                                   practice_name == "Residue and Tillage Management, Reduced Till" ~ 
-                                     "Reduced Till",
-                                   practice_name == "Obstruction Removal" ~ 
-                                     "Obstruction Removal"),
-         abbreviations = case_when(practice_name == "Clearing and Snagging" ~ "Clear & Snag",
+                                                        "Woody Residue Treatment") ~ "Forestry and Tree Mgmt"),         abbreviations = case_when(practice_name == "Clearing and Snagging" ~ "Clear & Snag",
                                    practice_name == "Grade Stabilization Structure" ~ "Grade Stablization",
                                    practice_name == "Stream Habitat Improvement and Management" ~ "Stream Habitat",
                                    practice_name == "Streambank and Shoreline Protection" ~ "Bank Protection",
@@ -222,16 +205,24 @@ top_practice_codes_12_regions <- top_practice_codes_12_regions %>%
                                             "Eastern Mountain Region",
                                             "Northeastern Region")))
 
-# Create heat map
+# Establish color palette
+category_colors <- c("Vegetation and Habitat Mgmt"="palegreen3",
+                     "Soil and Till Mgmt"="salmon4",
+                     "Forestry and Tree Mgmt"="palegreen4",
+                     "Water Mgmt and Aquatic Habitat"="cornflowerblue",
+                     "Waste Mgmt and Chemical Control"="mediumpurple3",
+                     "Infrastructure and Energy Efficiency"="slategrey")
+
+# Create plot
 top_5_practice_codes_by_region_plot <- 
   ggplot(top_practice_codes_12_regions, aes(x = ranking, y = region, fill = practice_type)) + 
   geom_tile() + 
   geom_text(aes(label = abbreviations), color = "white", size = 5) + #Give abbreviated labels
-  scale_fill_viridis_d() + #Set color scale
+  scale_fill_manual(values = category_colors) + #Set color scale
   theme(legend.position = "bottom", plot.title = element_text(size = 20),
         axis.text = element_text(size = 14), legend.title = element_text(size = 15),
         legend.text = element_text(size = 10), axis.title.x = element_text(size = 15)) +
-  labs(title = "Heatmap of Top 5 Practice Types by Region", 
+  labs(title = "Top 5 Practice Types by Region", 
        x = "Practice Ranking", y = "", fill = "Practice Type") 
 
 top_5_practice_codes_by_region_plot
