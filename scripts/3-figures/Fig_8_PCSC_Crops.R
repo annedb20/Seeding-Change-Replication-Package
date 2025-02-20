@@ -32,7 +32,7 @@ PCSC_frequency_crops_plot <- ggplot(frequency_crops, aes(
   x = Count, y = reorder(Crop, Count))) + geom_bar(stat = "identity", 
                                                    fill = "skyblue") + 
   theme_minimal(base_size = 16) +
-  labs(title = "Top 15 PCSC Crops by Frequency",
+  labs(title = "Top 15 Partnership for Climate Smart Commodities' Crops by Frequency",
        x = "Number of PCSC Projects for which Crop is Eligible", y = "")
 
 PCSC_frequency_crops_plot
