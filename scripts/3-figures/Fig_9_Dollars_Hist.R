@@ -25,7 +25,15 @@ dollars_year_state_program <-
          obligation_fy != "Total") %>% 
   mutate(dollars_obligated = dollars_obligated / 1e6) %>% # Divide by millions
   # Ensure obligation_fy is treated as a factor and ordered if not already
-  mutate(obligation_fy = factor(obligation_fy, levels = unique(obligation_fy))) %>%
+  mutate(obligation_fy = factor(obligation_fy, levels = unique(obligation_fy)),
+        program = case_when(program == "AMA" ~ "Agricultural Management Assistance (AMA)",
+                             program == "AWEP" ~ "Agriculture Water Enhancement Program (AWEP)",
+                             program == "CSP" ~ "Conservation Stewardship Program (CSP)",
+                             program == "CSP-GCI" ~ "CSP Grassland Conservation Initiative (GCI)",
+                             program == "EQIP" ~ "Environmental Quality Incentives Program (EQIP)",
+                             program == "RCPP-CSP" ~ "Regional Conservation Partnership Program (RCPP) - CSP",
+                             program == "RCPP-EQIP" ~ "Regional Conservation Partnership Program (RCPP) - EQIP",
+                             program == "WHIP" ~ "Wildlife Habitat Incentives Program (WHIP)")) %>%  
   ggplot(aes(x = obligation_fy, y = dollars_obligated, fill = program)) +
   geom_col(position = "stack") +
   # Facet_wrap by state should have a free y axis scale
@@ -37,6 +45,7 @@ dollars_year_state_program <-
        fill = "Program") +
   scale_x_discrete(labels = function(x) ifelse(seq_along(x) %% 2 == 1, x, "")) +
   theme(axis.text.x = element_text(angle = 90,  hjust = 1, vjust = 0.5),
-        legend.position = "bottom")
+        legend.position = "bottom") +
+  guides(fill = guide_legend(nrow = 4))
 
 dollars_year_state_program
