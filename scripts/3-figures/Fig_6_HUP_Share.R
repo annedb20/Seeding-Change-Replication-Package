@@ -39,8 +39,8 @@ hup_share_dollars_plot <- ggplot(hup_share_dollars, aes(x = share_hist_underserv
                                "Completed" = "#018571"),
                     guide = guide_legend(reverse = TRUE)) + 
   labs(fill = "Contract Status", 
-       y = "", x = "Share of Dollars in a Given Status Associated with HUPs", 
-       title = "Share of Dollars Dedicated to HUPs by Program and Contract Status",
+       y = "", x = "Share of Dollars in a Given Status Associated with Historically Underserved Producers", 
+       title = "Share of Dollars Dedicated to Historically Underserved Producers by Program and Contract Status",
        subtitle = paste0("Fiscal Year ", min_year, " - 2023"),
        caption = "Data Source: USDA NRCS Conservational Financial Assistance Data") +
   guides(fill = guide_legend(reverse = TRUE)) +
