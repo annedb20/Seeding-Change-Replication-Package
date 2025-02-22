@@ -1,60 +1,96 @@
-source("packages.R")
-source("1-load_data.R")
-source("2-clean_data.R")
+# source("packages.R")
+# source("1-load_data.R")
+# source("2-clean_data.R")
 
 # Figure 3: Top 5 Practice Types by Region
 
 # Filter for programs of interest and state- and practice-specific information
 # (Annual Payments removed from consideration since they are not practice-specific)
-state_practices_all_12_regions <- Practice_Political_Download %>%
-  filter(suppressed != "TRUE", geography_level != "National", 
-         county_name == "Total", obligation_fy == "Total",
-         certification_fy == "Total", practice_code != "Total", 
-         practice_name != "Total", program != "AWEP", program!= "WHIP",
-         program != "AMA", practice_code != "CROP", practice_code != "RANGE",
-         practice_code != "PAST", practice_code != "MINPAY",
-         practice_code != "E300EAP1",
-         practice_code != "E300EAP2",
-         practice_code != "NIPF", practice_code != "PCROP") %>%
+state_practices_all_12_regions <- 
+  Practice_Political_Download %>%
+  filter(
+    suppressed != "TRUE",
+    geography_level != "National",
+    county_name == "Total",
+    obligation_fy == "Total",
+    certification_fy == "Total",
+    practice_code != "Total",
+    practice_name != "Total",
+    program != "AWEP",
+    program != "WHIP",
+    program != "AMA",
+    practice_code != "CROP",
+    practice_code != "RANGE",
+    practice_code != "PAST",
+    practice_code != "MINPAY",
+    practice_code != "E300EAP1",
+    practice_code != "E300EAP2",
+    practice_code != "NIPF",
+    practice_code != "PCROP"
+  ) %>%
   select(-geography_level, -county_name, -fips_code) %>%  
   # Make new region variable, derived from https://www.nass.usda.gov/Statistics_by_State/RFO/index.php
-  mutate(region = case_when(state %in% c("Pennsylvania", "Delaware", "Maryland", 
-                                         "New Jersey", "New York", "Maine", "Vermont", 
-                                         "New Hampshire", "Rhode Island", 
-                                         "Massachusetts", "Connecticut") ~ 
-                              "Northeastern Region",
-                            state %in% c("Kentucky", "North Carolina", 
-                                         "Tennessee", "Virginia", 
-                                         "West Virginia") ~ 
-                              "Eastern Mountain Region",
-                            state %in% c("Georgia", "Alabama", "Florida", 
-                                         "South Carolina") ~ 
-                              "Southern Region",
-                            state %in% c ("Michigan", "Indiana", "Ohio") ~ 
-                              "Great Lakes Region",
-                            state %in% c("Iowa", "Minnesota", "Wisconsin") ~
-                              "Upper Midwest Region", 
-                            state %in% c("Missouri", "Illinois") ~ 
-                              "Heartland Region",
-                            state %in% c("Arkansas", "Louisiana", "Mississippi") ~ 
-                              "Delta Region",
-                            state %in% c("Nebraska", "Kansas", "North Dakota", 
-                                         "South Dakota") ~ 
-                              "Northern Plains Region",
-                            state %in% c("Texas", "Oklahoma") ~ 
-                              "Southern Plains Region",
-                            state %in% c("Colorado", "Arizona", "Montana",
-                                         "New Mexico", "Utah", "Wyoming") ~
-                              "Mountain Region",
-                            state %in% c("Washington", "Alaska", "Idaho", 
-                                         "Oregon") ~
-                              "Northwest Region",
-                            state %in% c("California", "Hawaii", "Nevada") ~ 
-                              "Pacific Region",
-                            state %in% c("Guam", "Puerto Rico", "American Samoa",
-                                         "Northern Mariana Islands", 
-                                         "U.S. Virgin Islands") ~ 
-                              "Island Territories"))
+  mutate(
+    region = case_when(
+      state %in% c(
+        "Pennsylvania",
+        "Delaware",
+        "Maryland",
+        "New Jersey",
+        "New York",
+        "Maine",
+        "Vermont",
+        "New Hampshire",
+        "Rhode Island",
+        "Massachusetts",
+        "Connecticut"
+      ) ~
+        "Northeastern Region",
+      state %in% c(
+        "Kentucky",
+        "North Carolina",
+        "Tennessee",
+        "Virginia",
+        "West Virginia"
+      ) ~
+        "Eastern Mountain Region",
+      state %in% c("Georgia", "Alabama", "Florida", "South Carolina") ~
+        "Southern Region",
+      state %in% c ("Michigan", "Indiana", "Ohio") ~
+        "Great Lakes Region",
+      state %in% c("Iowa", "Minnesota", "Wisconsin") ~
+        "Upper Midwest Region",
+      state %in% c("Missouri", "Illinois") ~
+        "Heartland Region",
+      state %in% c("Arkansas", "Louisiana", "Mississippi") ~
+        "Delta Region",
+      state %in% c("Nebraska", "Kansas", "North Dakota", "South Dakota") ~
+        "Northern Plains Region",
+      state %in% c("Texas", "Oklahoma") ~
+        "Southern Plains Region",
+      state %in% c(
+        "Colorado",
+        "Arizona",
+        "Montana",
+        "New Mexico",
+        "Utah",
+        "Wyoming"
+      ) ~
+        "Mountain Region",
+      state %in% c("Washington", "Alaska", "Idaho", "Oregon") ~
+        "Northwest Region",
+      state %in% c("California", "Hawaii", "Nevada") ~
+        "Pacific Region",
+      state %in% c(
+        "Guam",
+        "Puerto Rico",
+        "American Samoa",
+        "Northern Mariana Islands",
+        "U.S. Virgin Islands"
+      ) ~
+        "Island Territories"
+    )
+  )
 
 # Find sum of dollars_obligated for each region and practice
 top_practice_codes_12_regions <- 
@@ -62,22 +98,22 @@ top_practice_codes_12_regions <-
   group_by(region, practice_code) %>%
   summarize(practice_name = practice_name,
             practice_dollars_obligated = sum(dollars_obligated)) %>%
-  ungroup()
-
-# Filter out duplicate rows for ranking
-top_practice_codes_12_regions <- distinct(top_practice_codes_12_regions)
+  ungroup() %>% 
+  distinct() # Filter out duplicate rows for ranking
 
 # Take top 5 practices in each region
-top_practice_codes_12_regions <- top_practice_codes_12_regions %>%
+top_practice_codes_12_regions <- 
+  top_practice_codes_12_regions %>%
   group_by(region) %>%
   top_n(5, practice_dollars_obligated) %>%
   mutate(ranking = rank(-practice_dollars_obligated)) %>%
   ungroup()
 
-# Add practice categories and abbreviations for better graph legibility
-top_practice_codes_12_regions <- top_practice_codes_12_regions %>%
+# Add practice categories and abbreviations to increase legibility
+top_practice_codes_12_regions <- 
+  top_practice_codes_12_regions %>%
   # Authors sorted practices into the following categories based off of practice descriptions 
- mutate(practice_type = case_when(practice_name %in% c("Clearing and Snagging",
+  mutate(practice_type = case_when(practice_name %in% c("Clearing and Snagging",
                                                         "Grade Stabilization Structure",
                                                         "Stream Habitat Improvement and Management",
                                                         "Streambank and Shoreline Protection",
@@ -194,16 +230,19 @@ top_practice_codes_12_regions <- top_practice_codes_12_regions %>%
                                    practice_name == "Obstruction Removal" ~ "Obstructn Removal"))
 
 # Establish region as a factor with West to East order (appears East to West on plot)
-top_practice_codes_12_regions <- top_practice_codes_12_regions %>%
-  mutate(region = factor(region, levels = c("Island Territories", "Pacific Region",
-                                            "Northwest Region", "Mountain Region",
-                                            "Southern Plains Region",
-                                            "Northern Plains Region",
-                                            "Delta Region", "Heartland Region",
-                                            "Upper Midwest Region", 
-                                            "Great Lakes Region", "Southern Region",
-                                            "Eastern Mountain Region",
-                                            "Northeastern Region")))
+top_practice_codes_12_regions <-
+  top_practice_codes_12_regions %>%
+  mutate(region = factor(region, levels = c("Island Territories", 
+                                            "Pacific",
+                                            "Northwest", 
+                                            "Mountain",
+                                            "Southern Plains",
+                                            "Northern Plains",
+                                            "Delta", "Heartland",
+                                            "Upper Midwest", 
+                                            "Great Lakes", "Southern",
+                                            "Eastern Mountain",
+                                            "Northeastern")))
 
 # Establish color palette
 category_colors <- c("Vegetation and Habitat Mgmt"="palegreen3",
@@ -215,14 +254,26 @@ category_colors <- c("Vegetation and Habitat Mgmt"="palegreen3",
 
 # Create plot
 top_5_practice_codes_by_region_plot <- 
-  ggplot(top_practice_codes_12_regions, aes(x = ranking, y = region, fill = practice_type)) + 
+  top_practice_codes_12_regions %>% 
+  ggplot(aes(x = ranking, y = region, fill = practice_type)) + 
   geom_tile() + 
   geom_text(aes(label = abbreviations), color = "white", size = 5) + #Give abbreviated labels
   scale_fill_manual(values = category_colors) + #Set color scale
-  theme(legend.position = "bottom", plot.title = element_text(size = 20),
-        axis.text = element_text(size = 14), legend.title = element_text(size = 15),
-        legend.text = element_text(size = 10), axis.title.x = element_text(size = 15)) +
   labs(title = "Top 5 Practice Types by Region", 
-       x = "Practice Ranking", y = "", fill = "Practice Type") 
+       x = "Practice Ranking", y = "Region", fill = "Practice Type") +
+  theme(legend.position = "bottom",
+        axis.text.y = element_text(angle = 0, vjust = 0.5, size = 11),
+        axis.title.y = element_text(angle = 0, vjust = 0.5, size = 12), 
+        legend.title = element_text(size = 12, face="bold", hjust = 0.5),
+        legend.title.align = 0.5,    # Center the title relative to legend box
+        legend.box = "horizontal",  # Layout legend items horizontally
+        legend.key.width = unit(1.5, "lines"),  # Adjust key width, optional
+        legend.key.height = unit(1, "lines"),  # Adjust key height, optional
+        legend.margin = margin(t = -5, b = 5, l = 0, r = 0),  # Reduce margin around the legend to decrease the gap
+        legend.text = element_text(size = 10),   # Larger text size for legend labels
+        axis.text.x = element_text(angle = 0, vjust = 0.5, size = 11), 
+        axis.title.x = element_text(angle = 0, hjust = 0.5, size = 12, face = "bold"),
+        text = element_text(family = "sans") # Apply text size for x-axis title
+  ) 
 
 top_5_practice_codes_by_region_plot
