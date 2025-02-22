@@ -4,11 +4,6 @@ source("2-clean_data.R")
 
 # Stat 6: PCSC Monitoring by Org Type ----
 
-# Clean and rename Actor Type variable
-PCSC_Projects$`Actor Type` <- gsub("Firm ", "Firm", PCSC_Projects$`Actor Type`)
-PCSC_Projects <- PCSC_Projects %>%
-  rename(Actor.Type = `Actor Type`)
-
 # Calculate frequency of different types of actors
 freq_actors <- table(PCSC_Projects$Actor.Type) 
 
