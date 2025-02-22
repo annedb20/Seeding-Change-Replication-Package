@@ -8,9 +8,9 @@
 
 
 # Load Libraries -----
-# source("packages.R")
-# source("scripts/1-load_data.R")
-# source("scripts/2-clean_data.R")
+source("packages.R")
+source("scripts/1-load_data.R")
+source("scripts/2-clean_data.R")
 
 # Load additional, script specific libraries 00000 
 library(sf)
@@ -141,11 +141,13 @@ alaska <- alaska %>% st_set_geometry(alaska_trans) %>% st_set_crs(st_crs(state_g
 hawaii_trans <- (hawaii_g - hawaii_centroid) * rot(-35 * pi/180) + hawaii_centroid + c(53, 4)
 hawaii <- hawaii %>% st_set_geometry(hawaii_trans) %>% st_set_crs(st_crs(state_geometries))
 
-state_geometries <- state_geometries %>%
+state_geometries <- 
+  state_geometries %>%
   filter(!STATEFP %in% c('02', '15', '72', '')) %>%
   rbind(alaska) %>%
   rbind(hawaii) %>%
-  rename(state = NAME)
+  rename(state = NAME) %>%
+  select(state, geometry)
 
 # Merge sf data with practice data
 top_practice_codes_states_geom <- 
@@ -165,7 +167,8 @@ top_practice_codes_states_geom <-
     ))
 
 top_practice_codes_states_geom <- st_as_sf(top_practice_codes_states_geom)
-top_practice_codes_states_geom <- st_simplify(top_practice_codes_states_geom, dTolerance = 0.01)
+# top_practice_codes_states_geom <- st_simplify(top_practice_codes_states_geom, dTolerance = 0.01)
+# examine this file and see if there's a way we can reduce it
 
 # Add funding data ----- 
 # Generate a dataset that only shows the total annual values (dollars obligated, contracts) by program and state
@@ -198,28 +201,31 @@ dollars_per_state_geom <-
   filter(state != "District of Columbia")
 
 dollars_per_state_geom <- st_as_sf(dollars_per_state_geom)
-dollars_per_state_geom <- st_simplify(dollars_per_state_geom, dTolerance = 0.01)
+# dollars_per_state_geom <- st_simplify(dollars_per_state_geom, dTolerance = 0.01)
 
-# Create funding plot
-funding_per_state_plot <- ggplot(dollars_per_state_geom, aes(
-  fill = sum_dollars)) +
-  geom_sf() +
+# Generate Map of Funding per State --------
+funding_per_state_plot <- 
+  dollars_per_state_geom %>% 
+  ggplot(aes(fill = sum_dollars)) +
+  geom_sf(color = "white", size = 0.1) +
   scale_fill_viridis_c(option = "magma") +
-  coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
+  coord_sf(xlim = c(-125, -70), ylim = c(18, 50)) + # Adjust xlim to include Alaska
   theme_void() + 
-  labs(fill = "Dollars (Millions)",
-       subtitle = "Total Funding from EQIP, CSP, and RCPP") +
+  labs(fill = "Dollars\n(Millions)",
+       title = "Total Prior Funding") +
   theme(legend.position = "right",
         legend.text = element_text(size = 13),
-        legend.title = element_text(size = 15),
+        legend.title = element_text(size = 13),
         legend.key.size = unit(1, "cm"),
-        plot.subtitle = element_text(size = 16),
+        plot.title = element_text(hjust = 0.5, face = "bold", margin = margin(b = -5, unit = "pt")),  # Negative bottom margin
+        # plot.subtitle = element_text(size = 16, hjust = 0.5),
         plot.background = element_rect(color = "black", fill = NA, size = 1),
-        plot.margin = unit(c(.25, .25, .25, .25), "cm"))
+        plot.margin = unit(c(.25, .25, .25, .25), "cm")
+        )
 
 funding_per_state_plot
 
-# One by one plots of practice rankings ---- 
+# Generate maps of practice rankings ---- 
 # Define shorter labels for each practice type
 short_labels <- c("Vegetation Mgmt"="Vegetation",
                   "Soil and Till Mgmt"="Soil & Till Mgmt",
@@ -236,44 +242,53 @@ category_colors <- c("Vegetation and Habitat Mgmt"="#638959",
                      "Waste Mgmt and Chemical Control"="#8c96c6",
                      "Infrastructure and Energy Efficiency"="slategrey")
 
-# # Set up color palette
-# category_colors <- c("Vegetation and Habitat Mgmt"="palegreen3",
-#                      "Soil and Till Mgmt"="salmon4",
-#                      "Forestry and Tree Mgmt"="palegreen4",
-#                      "Water Mgmt and Aquatic Habitat"="cornflowerblue",
-#                      "Waste Mgmt and Chemical Control"="mediumpurple3",
-#                      "Infrastructure and Energy Efficiency"="slategrey")
+# Generate datasets for each of the top five rankings
+top_ranking_1 <- top_practice_codes_states_geom %>% filter(ranking == 1)
+top_ranking_2 <- top_practice_codes_states_geom %>% filter(ranking == 2)
+top_ranking_3 <- top_practice_codes_states_geom %>% filter(ranking == 3)
+top_ranking_4 <- top_practice_codes_states_geom %>% filter(ranking == 4)
+top_ranking_5 <- top_practice_codes_states_geom %>% filter(ranking == 5)
 
-#### ---
-# Define the function for individual maps
-generate_practice_plot <- function(data = top_practice_codes_states_geom, 
-                                   ranking, subtitle, legend_position = "none", 
-                                   legend_text_size = 16, legend_title_size = 16, legend_key_size = 1) {
+generate_practice_plot <- function(data, legend_position = "none") {
   plot <- 
     data %>%
-    filter(ranking == ranking) %>%
     ggplot(aes(fill = practice_type)) +
-    geom_sf() +
-    scale_fill_manual(values = category_colors) +
-    coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
+    geom_sf(color = "#F0F0F0", size = 0.025) + # border color
+    scale_fill_manual(values = category_colors,
+                      labels = short_labels) +
+    coord_sf(xlim = c(-125, -70), ylim = c(18, 50)) + # Adjust xlim to include Alaska
     theme_void() +
-    labs(subtitle = subtitle, fill = "Practice Type") +
+    labs(fill = "Practice\nType")
     theme(legend.position = legend_position,
-          plot.subtitle = element_text(size = 16, hjust = 0.5),
-          legend.text = element_text(size = legend_text_size),
-          legend.title = element_text(size = legend_title_size),
-          legend.key.size = unit(legend_key_size, "cm"))
-  
+          plot.title = element_text(hjust = 0.5, face = "bold", margin = margin(b = -5, unit = "pt")),  # Negative bottom margin
+          plot.margin = unit(c(.25, .25, .25, .25), "cm"),
+          legend.text = element_text(size = 13),
+          legend.title = element_text(size = 15),
+          legend.key.size = unit(1, "cm"))
   return(plot)
 }
 
-# Example usage
-practice_one <- generate_practice_plot(top_practice_codes_states_geom, ranking = 1, "1st", "none")
-practice_two <- generate_practice_plot(top_practice_codes_states_geom, 2, "2nd", "none")
-practice_three <- generate_practice_plot(top_practice_codes_states_geom, 3, "3rd", "right", 13, 15, "1cm")
-practice_four <- generate_practice_plot(top_practice_codes_states_geom, 4, "4th", "none")
-practice_five <- generate_practice_plot(top_practice_codes_states_geom, 5, "5th", "none")
+practice_one <-  generate_practice_plot(data = top_ranking_1, "none") + ggtitle('Most Funded'); practice_one
+practice_two <-  generate_practice_plot(data = top_ranking_2, "none") + ggtitle('2nd Most Funded'); practice_two
+practice_three <-  generate_practice_plot(data = top_ranking_3, "right") + ggtitle('3rd Most Funded'); practice_three
+practice_four <- generate_practice_plot(data = top_ranking_4, "none") + ggtitle('4th Most Funded'); practice_four
+practice_five <- generate_practice_plot(data = top_ranking_5, "none") + ggtitle('5th Most Funded'); practice_five
 
+## Combine maps using the patchwork package -- 
+# Organize the first five plots
+row1 <- practice_one + practice_two + practice_three + plot_layout(widths = c(4, 4, 4)); row1
+row2 <- practice_four + practice_five + funding_per_state_plot + plot_layout(widths = c(4, 4, 4))
+
+# Collect legends for the first five
+shared_legend_row <- 
+  (practice_one + practice_two + practice_three + practice_four + practice_five) + 
+  plot_layout(guides = 'collect')
+
+# Layout for plots with collective and individual legends
+top_5_practices_by_state_map <- (row1 / row2) +  plot_layout(guides = 'collect',  heights = c(1, 1))
+
+# Print the final layout
+top_5_practices_by_state_map
 
 
 ### Export ---- 
