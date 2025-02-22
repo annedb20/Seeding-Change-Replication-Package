@@ -1,0 +1,15 @@
+source("packages.R")
+source("1-load_data.R")
+source("2-clean_data.R")
+
+# Tab 3: PCSC Org Types ----
+
+# Calculate frequency of different types of actors
+freq_actors <- table(PCSC_Projects$Actor.Type) %>%
+  data.frame() %>%
+  rename(`Actor Type` = Var1,
+         Frequency = Freq) %>%
+  kable(caption = "PCSC partners by type of organization as of 10 August 2024.",
+        format = "latex", booktabs = TRUE, escape = FALSE, digits = 0,  align = "lrrr") 
+
+freq_actors
