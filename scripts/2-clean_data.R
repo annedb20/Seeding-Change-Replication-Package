@@ -43,6 +43,11 @@ PCSC_Projects <- PCSC_Projects %>%
          Major_Commodities_Under_Agreement = str_to_title(Major_Commodities_Under_Agreement)) %>%
   select(-`Major Commodities Under Agreement`)
 
+# Clean and rename Actor Type variable
+PCSC_Projects$`Actor Type` <- gsub("Firm ", "Firm", PCSC_Projects$`Actor Type`)
+PCSC_Projects <- PCSC_Projects %>%
+  rename(Actor.Type = `Actor Type`)
+
 ## Contract Download Table HUP
 # Change column names to lower case
 colnames(Contract_Download_Table_HUP) <- tolower(colnames(Contract_Download_Table_HUP))
