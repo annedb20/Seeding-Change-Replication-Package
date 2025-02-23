@@ -194,27 +194,31 @@ All_Programs_Total_Dollars_Plot <-
   theme(axis.text.y = element_text(angle = 0), legend.position = "bottom") +
   scale_x_continuous(labels = scales::label_comma(),
                      breaks = seq(0,1500,250), 
-                     limits = c(0,1500)
+                     limits = c(0,1500),
+                     expand = c(0, 0)
                      ) +
   scale_fill_discrete(labels = c("PCSC" = "Partnership for Climate Smart Commodities", 
                                "RCPP" = "Regional Conservation Partnership Program", 
                                "CSP" = "Conservation Stewardship Program", 
                                "EQIP" = "Environmental Quality Incentives Program")) +
-  theme(axis.text.y = element_text(angle = 0, vjust = 0.5, size = 11),
+  theme(#axis.text.y = element_text(angle = 0, vjust = 0.5, size = 9),
+        axis.text.y = element_text(angle = 0, hjust = 1, vjust = 0.5, size = 8.5, margin = margin(t = 3, b = 2, unit = "pt")), 
         axis.title.y = element_text(angle = 0, vjust = 0.5, size = 11, face = "bold"), 
         axis.text.x = element_text(angle = 0, vjust = 0.5, size = 11), 
         axis.title.x = element_text(angle = 0, hjust = 0.5, size = 11, face = "bold"),
         text = element_text(family = "sans"), # Apply text size for x-axis title+
         # legend opts
-        # legend.position = c(0.8, 0.75),  # Inset the Contract Status (x, y)
-        legend.text = element_text(size = 11),
-        legend.title = element_text(size = 11.5, face = "bold"),
-        legend.key.size = unit(0.5, "cm")) +
+        legend.text = element_text(size = 10),
+        legend.title = element_text(size = 11, face = "bold"),
+        legend.key.size = unit(0.5, "cm"),
+        # Adjust font sizes for the region names to the right
+        strip.text = element_text(size = 11, face = "bold")
+        ) +
   guides(fill = guide_legend(nrow = 2))
 
 All_Programs_Total_Dollars_Plot
 
 ggsave.latex(All_Programs_Total_Dollars_Plot, 
-             filename = file_path("figs/total_dollars_by_programv2.pdf"), 
-             height = 3, width = 8.4, units = "in")
+             filename = file_path("figs/total_dollars_by_program_v2.pdf"), 
+             height = 7.2, width = 7.5, units = "in")
 
