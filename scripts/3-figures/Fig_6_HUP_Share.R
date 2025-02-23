@@ -49,18 +49,17 @@ hup_share_dollars_plot <-
   hup_share_dollars_distinct %>% 
   ggplot(aes(
     x = share_hist_underserved,
-    y = program_short,
-    fill = factor(
-      contract_status,
-      levels = c("Terminated", "Completed", "Cancelled", "Active")
+    y = factor(program_short, levels = rev(unique(hup_share_dollars$program_short))),  # Reverse the order here for y-axis
+    fill = factor(contract_status, levels = c( "Terminated", "Cancelled", "Active", "Completed")
     )
   )) +
   geom_col(position = position_dodge(width = 0.75), color = "white", width = 0.7) +
-  scale_fill_manual(values = c("Active" = "#a6dba0", 
+  scale_fill_manual(values = c("Completed" = "#018571",
+                               "Active" = "#a6dba0", 
                                "Cancelled" = "#f4a582", # Mutually agreeable
-                               "Terminated" = "tomato", # Red: violation of terms
-                               "Completed" = "#018571"),
-                    guide = guide_legend(reverse = TRUE)) + 
+                               "Terminated" = "tomato" # Red: violation of terms
+                               ), 
+                    guide = guide_legend(reverse = FALSE)) + # Control legend order
   labs(fill = "Contract Status", 
        y = "", 
        x = "\n Share of funds linked to Historically Underserved Producers"
@@ -90,8 +89,10 @@ hup_share_dollars_plot <-
         legend.title = element_text(size = 11.5, face = "bold"),
         legend.key.size = unit(0.5, "cm"),
         text = element_text(family = "sans"),
-        # settings for legend background
         legend.background = element_rect(colour = "gray", size = 0.5)
   ) 
 
 hup_share_dollars_plot
+
+
+ggsave.latex(hup_share_dollars_plot, filename = file_path("figs/hup_share_dollars_v2.pdf"), height = 3.7, width = 7.2, units = "in")
