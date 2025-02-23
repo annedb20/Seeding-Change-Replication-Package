@@ -1,8 +1,13 @@
-source("packages.R")
-source("1-load_data.R")
-source("2-clean_data.R")
+########################################################################
+# Author: Anne Bell Carroll, Elinor Benami (elinor@vt.edu)
+# Date: # Sat Feb 22 14:26:43 2025 ------------------------------
+# Purpose: Total Dollars Obligated by Program
+# Notes:
+########################################################################
 
-# Figure 7: Total Dollars Obligated by Program
+# source("packages.R")
+# source("1-load_data.R")
+# source("2-clean_data.R")
 
 # Create dataset for state dollar totals for historical programs
 historical_dollar_totals_per_state <- 
@@ -164,23 +169,52 @@ sorting_order <- All_Programs_Total_Dollars %>%
   pull(state)
 
 # Sort out rows for which PCSC dollars are unknown (due to lack of NASS data)
-All_Programs_Total_Dollars <- All_Programs_Total_Dollars %>%
-  filter(region != "Is. Terr.")
+All_Programs_Total_Dollars <- All_Programs_Total_Dollars %>% filter(region != "Is. Terr.")
+
+# Add in labels
+program_labels <- c("PCSC" = "Partnership for Climate Smart Commodities", 
+                    "RCPP" = "Regional Conservation Partnership Program", 
+                    "CSP" = "Conservation Stewardship Program", 
+                    "EQIP" = "Environmental Quality Incentives Program")
 
 # Create the bar chart
-All_Programs_Total_Dollars_Plot <- All_Programs_Total_Dollars %>%
+All_Programs_Total_Dollars_Plot <- 
+  All_Programs_Total_Dollars %>%
   mutate(state = factor(state, levels = sorting_order),
-         region = factor(region, levels = c("Central", "Southeast", "West", 
-                                            "Northeast")),
-         program = factor(program, levels = c("PCSC", "RCPP", "CSP", "EQIP"))) %>%
+         region = factor(region, levels = c("Central", "Southeast", "West", "Northeast")),
+         program = factor(program,  levels = c("PCSC", "RCPP", "CSP", "EQIP"))) %>%
   ggplot(aes(y = state, x = dollars_obligated / 1e6, fill = program)) + 
   geom_bar(stat = "identity", position = "stack") +
-  labs(x = "Dollars in Millions", y = "",
-       title = "Total Dollars Obligated by Program", fill = "Program") +
+  labs(x = "\nDollars (Millions)",
+       y = "",
+       # title = "Total Dollars Obligated by Program",
+       fill = "Program") +
   facet_grid(region ~ ., scales = "free_y", space = "free") + # Separate graph by region
   theme_minimal(base_size = 18) + # Increase font size of all elements
-  theme(axis.text.y = element_text(angle = 0, hjust = 1), legend.position = "bottom") +
-  scale_x_continuous(labels = scales::label_comma(), breaks = c(0, 500, 1000)) +
+  theme(axis.text.y = element_text(angle = 0), legend.position = "bottom") +
+  scale_x_continuous(labels = scales::label_comma(),
+                     breaks = seq(0,1500,250), 
+                     limits = c(0,1500)
+                     ) +
+  scale_fill_discrete(labels = c("PCSC" = "Partnership for Climate Smart Commodities", 
+                               "RCPP" = "Regional Conservation Partnership Program", 
+                               "CSP" = "Conservation Stewardship Program", 
+                               "EQIP" = "Environmental Quality Incentives Program")) +
+  theme(axis.text.y = element_text(angle = 0, vjust = 0.5, size = 11),
+        axis.title.y = element_text(angle = 0, vjust = 0.5, size = 11, face = "bold"), 
+        axis.text.x = element_text(angle = 0, vjust = 0.5, size = 11), 
+        axis.title.x = element_text(angle = 0, hjust = 0.5, size = 11, face = "bold"),
+        text = element_text(family = "sans"), # Apply text size for x-axis title+
+        # legend opts
+        # legend.position = c(0.8, 0.75),  # Inset the Contract Status (x, y)
+        legend.text = element_text(size = 11),
+        legend.title = element_text(size = 11.5, face = "bold"),
+        legend.key.size = unit(0.5, "cm")) +
   guides(fill = guide_legend(nrow = 2))
 
 All_Programs_Total_Dollars_Plot
+
+ggsave.latex(All_Programs_Total_Dollars_Plot, 
+             filename = file_path("figs/total_dollars_by_programv2.pdf"), 
+             height = 3, width = 8.4, units = "in")
+
