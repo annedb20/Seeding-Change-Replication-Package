@@ -77,7 +77,7 @@ PCSC_frequency_practices_plot <-
                      breaks = seq(0, 95, by = 15)) +
   scale_y_discrete(expand = c(0, 0)) +
   labs(#title = "Top 15 PCSC Practices by Frequency",
-       x = "\nNumber of PCSC Projects for which a practice is Eligible", y = "") +
+       x = "\nNumber of PCSC projects for which a practice is eligible", y = "") +
   theme(axis.text.y = element_text(angle = 0, vjust = 0.5, size = 11),
         axis.title.y = element_text(angle = 0, vjust = 0.5, size = 11, face = "bold"), 
         axis.text.x = element_text(angle = 0, vjust = 0.5, size = 11), 
