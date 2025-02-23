@@ -14,11 +14,6 @@ source2("Stat_6_MMRV_by_Partner_Type.R", start = 4, end = 83)
 
 # Stat 7: Avg number of states supported by different types of PCSC partners
 
-# Clean PCSC_states_long Actor Type variable
-PCSC_states_long$`Actor Type` <- gsub("Firm ", "Firm", PCSC_states_long_with_actors$`Actor Type`)
-PCSC_states_long <- PCSC_states_long %>%
-  rename(Actor.Type = `Actor Type`)
-
 # Find total numbers of states supported by each applicant
 PCSC_states_count_by_applicant <- PCSC_states_long %>%
   group_by(Applicant, Actor.Type) %>%
