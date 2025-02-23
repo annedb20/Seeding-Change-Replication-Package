@@ -47,7 +47,7 @@ PCSC_frequency_crops_plot <-
                      breaks = seq(0, 45, by = 5)) +
   scale_y_discrete(expand = c(0, 0)) +
   labs(#title = "Top 15 Partnership for Climate Smart Commodities' Crops by Frequency",
-       x = "Number of PCSC Projects for which Crop is Eligible", y = "")+
+       x = "\nNumber of PCSC projects for which a crop is eligible", y = "")+
   theme(axis.text.y = element_text(angle = 0, vjust = 0.5, size = 11),
         axis.title.y = element_text(angle = 0, vjust = 0.5, size = 11, face = "bold"), 
         axis.text.x = element_text(angle = 0, vjust = 0.5, size = 11), 
