@@ -98,22 +98,24 @@ top_practice_codes_12_regions <-
   group_by(region, practice_code) %>%
   summarize(practice_name = practice_name,
             practice_dollars_obligated = sum(dollars_obligated)) %>%
-  ungroup() %>% 
-  distinct() # Filter out duplicate rows for ranking
+  ungroup() 
+
+# Filter out duplicate rows for ranking
+top_practice_codes_12_regions <- distinct(top_practice_codes_12_regions)
 
 # Take top 5 practices in each region
-top_practice_codes_12_regions <- 
+top_practice_codes_12_regions <-
   top_practice_codes_12_regions %>%
   group_by(region) %>%
   top_n(5, practice_dollars_obligated) %>%
   mutate(ranking = rank(-practice_dollars_obligated)) %>%
   ungroup()
 
-# Add practice categories and abbreviations to increase legibility
+# Add practice categories and abbreviations for better graph legibility
 top_practice_codes_12_regions <- 
   top_practice_codes_12_regions %>%
   # Authors sorted practices into the following categories based off of practice descriptions 
-  mutate(practice_type = case_when(practice_name %in% c("Clearing and Snagging",
+ mutate(practice_type = case_when(practice_name %in% c("Clearing and Snagging",
                                                         "Grade Stabilization Structure",
                                                         "Stream Habitat Improvement and Management",
                                                         "Streambank and Shoreline Protection",
@@ -230,50 +232,65 @@ top_practice_codes_12_regions <-
                                    practice_name == "Obstruction Removal" ~ "Obstructn Removal"))
 
 # Establish region as a factor with West to East order (appears East to West on plot)
-top_practice_codes_12_regions <-
+top_practice_codes_12_regions <- 
   top_practice_codes_12_regions %>%
-  mutate(region = factor(region, levels = c("Island Territories", 
-                                            "Pacific",
-                                            "Northwest", 
-                                            "Mountain",
-                                            "Southern Plains",
-                                            "Northern Plains",
-                                            "Delta", "Heartland",
-                                            "Upper Midwest", 
-                                            "Great Lakes", "Southern",
-                                            "Eastern Mountain",
-                                            "Northeastern")))
+  mutate(region = factor(region, levels = c("Island Territories", "Pacific Region",
+                                            "Northwest Region", "Mountain Region",
+                                            "Southern Plains Region",
+                                            "Northern Plains Region",
+                                            "Delta Region", "Heartland Region",
+                                            "Upper Midwest Region", 
+                                            "Great Lakes Region", "Southern Region",
+                                            "Eastern Mountain Region",
+                                            "Northeastern Region")))
+
+# Define shorter labels for each practice type
+short_labels <- c("Vegetation Mgmt"="Vegetation",
+                  "Soil and Till Mgmt"="Soil & Till Mgmt",
+                  "Forestry and Tree Mgmt"="Forestry",
+                  "Water Mgmt and Aquatic Habitat"="Water Mgmt",
+                  "Waste Mgmt and Chemical Control"="Waste Mgmt & Chem Control",
+                  "Infrastructure and Energy Efficiency"="Infrastructure")
 
 # Establish color palette
-category_colors <- c("Vegetation and Habitat Mgmt"="palegreen3",
-                     "Soil and Till Mgmt"="salmon4",
-                     "Forestry and Tree Mgmt"="palegreen4",
-                     "Water Mgmt and Aquatic Habitat"="cornflowerblue",
-                     "Waste Mgmt and Chemical Control"="mediumpurple3",
+category_colors <- c("Vegetation and Habitat Mgmt"="#638959",
+                     "Soil and Till Mgmt"= "#734434",
+                     "Forestry and Tree Mgmt"="#134023",
+                     "Water Mgmt and Aquatic Habitat"="#045a8d",
+                     "Waste Mgmt and Chemical Control"="#8c96c6",
                      "Infrastructure and Energy Efficiency"="slategrey")
 
 # Create plot
 top_5_practice_codes_by_region_plot <- 
-  top_practice_codes_12_regions %>% 
-  ggplot(aes(x = ranking, y = region, fill = practice_type)) + 
+  ggplot(top_practice_codes_12_regions, aes(x = ranking, y = region, fill = practice_type), alpha = 0.95) + 
   geom_tile() + 
-  geom_text(aes(label = abbreviations), color = "white", size = 5) + #Give abbreviated labels
-  scale_fill_manual(values = category_colors) + #Set color scale
-  labs(title = "Top 5 Practice Types by Region", 
-       x = "Practice Ranking", y = "Region", fill = "Practice Type") +
+  geom_text(aes(label = abbreviations), color = "white", size = 2.25) + #Give abbreviated labels
+  scale_fill_manual(values = category_colors,
+                    labels = short_labels) +
+  labs(x = "Practice Ranking", y = "Region", fill = "Practice Type"
+       #title = "Top 5 Practice Types by Region"
+       ) +
+  scale_y_discrete(labels = function(x) gsub(" Region", "", x), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0.5, 5.5), breaks = 1:5, expand = c(0, 0)) +
   theme(legend.position = "bottom",
-        axis.text.y = element_text(angle = 0, vjust = 0.5, size = 11),
-        axis.title.y = element_text(angle = 0, vjust = 0.5, size = 12), 
-        legend.title = element_text(size = 12, face="bold", hjust = 0.5),
+        axis.text.y = element_text(angle = 0, vjust = 0.5, size = 7),
+        axis.title.y = element_text(vjust = 0.5, size = 8, face = "bold"), 
+        legend.title = element_text(size = 8, face="bold", hjust = 0.5),
         legend.title.align = 0.5,    # Center the title relative to legend box
         legend.box = "horizontal",  # Layout legend items horizontally
         legend.key.width = unit(1.5, "lines"),  # Adjust key width, optional
         legend.key.height = unit(1, "lines"),  # Adjust key height, optional
-        legend.margin = margin(t = -5, b = 5, l = 0, r = 0),  # Reduce margin around the legend to decrease the gap
-        legend.text = element_text(size = 10),   # Larger text size for legend labels
-        axis.text.x = element_text(angle = 0, vjust = 0.5, size = 11), 
-        axis.title.x = element_text(angle = 0, hjust = 0.5, size = 12, face = "bold"),
+        legend.margin = margin(t = 0, b = 5, l = 0, r = 5),  # Reduce margin around the legend to decrease the gap
+        legend.text = element_text(size = 6),   # Larger text size for legend labels
+        axis.text.x = element_text(angle = 0, vjust = 0.5, size = 8), 
+        axis.title.x = element_text(angle = 0, hjust = 0.5, size = 8, face = "bold"),
         text = element_text(family = "sans") # Apply text size for x-axis title
-  ) 
+  ) +
+  guides(fill = guide_legend(title.position = "left", ncol = 3))
+
 
 top_5_practice_codes_by_region_plot
+
+ggsave.latex(top_5_practice_codes_by_region_plot, 
+             filename = file_path("figs/heatmap_practices_by_region_v7.pdf"), 
+             width = 5.85, height = 4, units = "in")
