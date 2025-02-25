@@ -3,7 +3,6 @@
 # Date: # Sat Feb 22 14:26:43 2025 ------------------------------
 # Purpose: Gen Figure on Historical Share of Support for CSAF Practice
 # Notes:
-# Data Download here: https://eric.clst.org/tech/usgeojson/ (Original Download)
 ########################################################################
 
 # source("packages.R")
