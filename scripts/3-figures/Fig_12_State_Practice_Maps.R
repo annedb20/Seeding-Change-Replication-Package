@@ -301,5 +301,5 @@ top_5_practices_by_state_map <- (row1 / row2) +  plot_layout(guides = 'collect')
 
 ### Export ---- 
 ggsave.latex(top_5_practices_by_state_map, 
-             filename = file_path("figs/Top_5_Practices_by_Funding_v5.pdf"), 
+             filename = file_path("figs/Top_5_Practices_by_Funding_v7.pdf"), 
              width = 9.3, height = 4.28, units = "in")
