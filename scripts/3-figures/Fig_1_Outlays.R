@@ -42,7 +42,7 @@ program_funding_plot <-
   theme_light(base_size = 14) + 
   theme(legend.position = "bottom",
         axis.text.y = element_text(angle = 0, vjust = 0.5, size = 11),
-        axis.title.y = element_text(angle = 0, vjust = 0.5, size = 12, face = "bold"), 
+        axis.title.y = element_text(angle = 0, vjust = 0.5, size = 12), 
         legend.title = element_text(size = 12, face="bold", hjust = 0.5),
         legend.title.align = 0.5,    # Center the title relative to legend box
         legend.box = "horizontal",  # Layout legend items horizontally
