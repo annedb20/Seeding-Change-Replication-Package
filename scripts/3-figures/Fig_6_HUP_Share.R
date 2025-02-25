@@ -68,13 +68,13 @@ hup_share_dollars_plot <-
        # caption = "Data Source: USDA NRCS Conservational Financial Assistance Data"
        ) +
   guides(fill = guide_legend(reverse = TRUE)) +
-  scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, 10), expand = c(0, 0)) +
+  scale_x_continuous(limits = c(0, 103), breaks = seq(0, 100, 10), expand = c(0, 0)) +
   # start the y axis at the 0 line
   scale_y_discrete(expand = c(0, 0), labels = program_names) +
   geom_vline(xintercept = 40, linetype = "dashed", color = "#5A5A5A", linewidth = 0.75) +
   geom_text(aes(label = scales::comma(sum_contract_counts)), 
             position = position_dodge(width = .75),
-            hjust = -0.1, vjust = 0.5, fontface = "bold",
+            hjust = -0.1, vjust = 0.5,
             show.legend = F, size = 3.5) + # Add labels, adjust size and position, and remove from legend
   theme_classic() +
   theme(axis.text.y = element_text(angle = 0, hjust = 0.5, # center text
@@ -83,7 +83,7 @@ hup_share_dollars_plot <-
         axis.text.x = element_text(angle = 0, vjust = 0.5, size = 11.5), 
         axis.title.x = element_text(angle = 0, hjust = 0.5, size = 12, face = "bold"),
         # legend opts
-        legend.position = c(0.8, 0.82),  # Inset the Contract Status
+        legend.position = c(0.8, 0.75),  # Inset the Contract Status (x, y)
         # legend.position = "bottom",
         legend.text = element_text(size = 11),
         legend.title = element_text(size = 11.5, face = "bold"),
@@ -95,4 +95,4 @@ hup_share_dollars_plot <-
 hup_share_dollars_plot
 
 
-ggsave.latex(hup_share_dollars_plot, filename = file_path("figs/hup_share_dollars_v2.pdf"), height = 3.7, width = 7.2, units = "in")
+ggsave.latex(hup_share_dollars_plot, filename = file_path("figs/hup_share_dollars_v2.pdf"), height = 3, width = 8.4, units = "in")
