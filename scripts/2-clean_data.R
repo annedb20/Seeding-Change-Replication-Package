@@ -81,5 +81,94 @@ Contract_Download_Table_HUP$dollars_obligated <- as.numeric(
 ## Producer Numbers by State
 Producer_Numbers_by_State$State <- str_to_title(Producer_Numbers_by_State$State) # Format capitalization
 
+## Census Datasets: clean and join practice datasets
+Census_Cover_Crop <- Census_Cover_Crop %>%
+  clean_names()
+
+Census_Tillage <- Census_Tillage %>%
+  clean_names()
+
+Census_No._Crop_Operations <- Census_No._Crop_Operations %>%
+  clean_names()
+
+Census_Cropland_Acres <- Census_Cropland_Acres %>%
+  clean_names()
+
+# Join practice datasets
+Census_Practices <- full_join(Census_Cover_Crop, Census_Tillage)
+rm(Census_Cover_Crop)
+rm(Census_Tillage)
+
+# Make practice values numeric
+Census_Practices$value <- gsub(",", "", Census_Practices$value)
+Census_Practices$value <- as.numeric(Census_Practices$value)
+
+# Manually input County fips codes for Alaskan counties
+Census_Practices <- Census_Practices %>%
+  mutate(county_ansi = case_when(state == "ALASKA" & county == "KENAI PENINSULA" ~ "122", 
+                                 state == "ALASKA" & county == "ANCHORAGE" ~ "020",
+                                 state == "ALASKA" & county == "JUNEAU" ~ "110",
+                                 state == "ALASKA" & county == "ALEUTIAN ISLANDS" ~ "010",
+                                 state == "ALASKA" & county == "FAIRBANKS NORTH STAR" ~ "090",
+                                 TRUE ~ county_ansi))
+
+# Extract acreage
+Census_Cropland_Acres <- Census_Cropland_Acres %>%
+  select(year, state, county, value) %>%
+  rename(crop_acre_number = value)
+
+# Make acres numeric
+Census_Cropland_Acres$crop_acre_number <- gsub(",", "", Census_Cropland_Acres$crop_acre_number)
+Census_Cropland_Acres$crop_acre_number <- as.numeric(Census_Cropland_Acres$crop_acre_number)
+# NAs introduced where acreage was too small to disclose for privacy reasons
+
+# Extract number of operations
+Census_No._Crop_Operations <- Census_No._Crop_Operations %>%
+  select(year, state, county, value) %>%
+  rename(no._crop_operations = value)
+
+# Make no. operations numeric
+Census_No._Crop_Operations$no._crop_operations <- gsub(",", "", Census_No._Crop_Operations$no._crop_operations)
+Census_No._Crop_Operations$no._crop_operations <- as.numeric(Census_No._Crop_Operations$no._crop_operations)
+
+# Include cropland acreage and operations data with practice data
+Census_Practices <- Census_Practices %>%
+  left_join(Census_Cropland_Acres, by = c("state", "county", "year")) %>%
+  left_join(Census_No._Crop_Operations, by = c("state", "county", "year")) %>%
+  # Clean census practice data
+  # Remove unnecessary columns
+  select(-program, -period, -week_ending, -ag_district, 
+         -ag_district_code, -zip_code, -region, -watershed_code, 
+         -watershed, -commodity, -domain, -domain_category, -cv_percent) %>%
+  # Manage capitalization
+  mutate(state = str_to_title(state),
+         county = str_to_title(county),
+         # Manage practice names for easier reading
+         data_item = case_when(data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, (EXCL NO-TILL) - ACRES" ~ "reduced_tillage_acres",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, (EXCL NO-TILL) - AREA, MEASURED IN ACRES / OPERATION" ~ "reduced_tillage_acres/operation",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, (EXCL NO-TILL) - NUMBER OF OPERATIONS" ~ "reduced_tillage_no._operations",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, NO-TILL - ACRES" ~ "no_till_acres",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, NO-TILL - AREA, MEASURED IN ACRES / OPERATION" ~ "no_till_acres/operation",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, CONSERVATION TILLAGE, NO-TILL - NUMBER OF OPERATIONS" ~ "no_till_no._operations",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, COVER CROP PLANTED, (EXCL CRP) - ACRES" ~ "cover_crop_acres",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, COVER CROP PLANTED, (EXCL CRP) - AREA, MEASURED IN ACRES / OPERATION" ~ "cover_crop_acres/operation",
+                               data_item == "PRACTICES, LAND USE, CROPLAND, COVER CROP PLANTED, (EXCL CRP) - NUMBER OF OPERATIONS" ~ "cover_crop_no._operations")) %>%
+  rename(county_name = county,
+         practice_and_unit = data_item) %>%
+  # Pivot wider to make each practice their own column
+  pivot_wider(names_from = practice_and_unit, values_from = value) %>%
+  # Make practice acres/total cropland acres variables,repeat for number of operations
+  mutate(pct_cropland_reduced_tillage = (reduced_tillage_acres / crop_acre_number * 100),
+         pct_cropland_no_till = (no_till_acres / crop_acre_number * 100),
+         pct_cropland_cover_crop = (cover_crop_acres / crop_acre_number * 100),
+         pct_crop_operations_reduced_tillage = (reduced_tillage_no._operations / no._crop_operations * 100),
+         pct_crop_operations_no_till = (no_till_no._operations / no._crop_operations * 100),
+         pct_crop_operations_cover_crop = (cover_crop_no._operations / no._crop_operations * 100),
+         # Make ansi columns numeric
+         state_ansi = as.numeric(state_ansi),
+         county_ansi = as.numeric(county_ansi))
+
+rm(Census_No._Crop_Operations)
+rm(Census_Cropland_Acres)
 
 
