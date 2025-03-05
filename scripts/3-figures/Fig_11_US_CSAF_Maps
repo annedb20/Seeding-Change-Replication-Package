@@ -1,15 +1,7 @@
 ################## 1. LOAD PACKAGES AND DATA #################
-
-# Working directory must be set to location of these source files
-
 source("packages.R")
 source("1-load_data.R") # Loads NRCS financial data
 source("2-clean_data.R")
-
-# Other relevant packages (will update the packages file)
-library(sf)
-library(patchwork)
-library(data.table)
 
 # Set up file paths
 my_file_path <- if(Sys.info()["user"] == "annedb20"){"/Users/annedb20/csa/"
