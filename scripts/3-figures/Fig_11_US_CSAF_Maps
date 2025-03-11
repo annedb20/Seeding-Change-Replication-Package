@@ -1,19 +1,13 @@
-################## 1. LOAD PACKAGES AND DATA #################
+########################################################################
+# Author: Anne Bell Carroll, Elinor Benami (elinor@vt.edu)
+# Date: # Sat Mar 11 5:36 2025 ------------------------------
+# Purpose: Generate map comparing practice adoption and funding across US states
+# Notes:
+########################################################################
+
 source("packages.R")
-source("1-load_data.R") # Loads NRCS financial data
+source("1-load_data.R")
 source("2-clean_data.R")
-
-# Set up file paths
-my_file_path <- if(Sys.info()["user"] == "annedb20"){"/Users/annedb20/csa/"
-} else {
-  #TODO: add file path here for other user
-}
-data_path <- function(x){paste0(my_file_path, x)}
-
-# Load in US county geometries
-us_counties <- read_sf(data_path(paste0("gz_2010_us_050_00_5m.json")))
-
-################## 2. CLEAN DATA AND PRODUCE MERGED FILE WITH FUNDING INFO #################
 
 # Clean Practice_Political_Download for joining
 Practice_Funding <- Practice_Political_Download %>%
@@ -45,22 +39,16 @@ Practice_Funding <- Practice_Political_Download %>%
   ungroup() %>%
   # Remove unnecessary columns (certification fiscal year all NA for selected information)
   select(-...1, -certification_fy, -suppressed) %>%
-  # Rename year for merging
-  rename(year = obligation_fy)
+  # Rename year and make into integer for merging
+  rename(year = obligation_fy) %>%
+  mutate(year = as.integer(year))
 
-# Make year variable integer for merging
-Practice_Funding$year <- as.integer(Practice_Funding$year)
 
 # Join practice funding data with practice uptake data
 Practice_Funding_and_Uptake <- left_join(Census_Practices, Practice_Funding,
                                          by = c("state", "county_name", "year"))
 
-write.csv(Practice_Funding_and_Uptake, "Practice_Funding_and_Uptake.csv")
-
-################### 3. CLEAN DATA FOR MERGING AND MAPPING ######################
-
 # Reduce and clean Practice_Funding_and_Uptake for merging
-
 CSAF_adopt_fund_small <- Practice_Funding_and_Uptake %>%
   filter(year == 2022) %>%
   # Select relevant columns
@@ -83,76 +71,9 @@ CSAF_adopt_fund_small <- Practice_Funding_and_Uptake %>%
   rename(STATE = state_ansi,
          COUNTY = county_ansi) 
 
-# Shift locations and sizes of Alaska and Hawaii
+# Now let's merge with geometries
+us_counties_CSAF <- full_join(us_counties, CSAF_adopt_fund_small)
 
-#Extract geometries and centroids
-alaska <- us_counties %>%
-  filter(STATE %in% "02")
-alaska_g <- st_geometry(alaska)
-alaska_centroid <- st_centroid(st_union(alaska_g))
-
-hawaii <- us_counties %>%
-  filter(STATE %in% "15")
-hawaii_g <- st_geometry(hawaii)
-hawaii_centroid <- st_centroid(st_union(hawaii_g))
-
-# Rotation function
-rot <- function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
-
-# Transform state geometries
-
-# Decrease Alaska size and set it under the continental US
-alaska_trans <- (alaska_g - alaska_centroid) * rot(-1 * pi/180) / 2.3 + alaska_centroid + c(35, -40)
-alaska <- alaska %>% st_set_geometry(alaska_trans) %>% st_set_crs(st_crs(us_counties))
-
-# Set Hawaii under continental US
-hawaii_trans <- (hawaii_g - hawaii_centroid) * rot(-35 * pi/180) + hawaii_centroid + c(53, 4)
-hawaii <- hawaii %>% st_set_geometry(hawaii_trans) %>% st_set_crs(st_crs(us_counties))
-
-us_counties_final <- us_counties %>%
-  filter(!STATE %in% c('02', '15', '72', '')) %>%
-  rbind(alaska) %>%
-  rbind(hawaii)
-
-# Now let's merge the two!
-us_counties_CSAF <- merge(us_counties_final, CSAF_adopt_fund_small, all = TRUE)
-
-#################### 4. MAPPING #########################
-
-####### Get state borders in
-# Load file
-state_borders <- read_sf(data_path(paste0("gz_2010_us_040_00_5m.json")))
-
-# Apply code to HI/AL locations 
-alaska <- state_borders %>%
-  filter(STATE %in% "02")
-alaska_g <- st_geometry(alaska)
-alaska_centroid <- st_centroid(st_union(alaska_g))
-
-hawaii <- state_borders %>%
-  filter(STATE %in% "15")
-hawaii_g <- st_geometry(hawaii)
-hawaii_centroid <- st_centroid(st_union(hawaii_g))
-
-# Rotation function
-rot <- function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
-
-# Transform state geometries
-
-# Decrease Alaska size and set it under the continental US
-alaska_trans <- (alaska_g - alaska_centroid) * rot(-1 * pi/180) / 2.3 + alaska_centroid + c(35, -40)
-alaska <- alaska %>% st_set_geometry(alaska_trans) %>% st_set_crs(st_crs(state_borders))
-
-# Set Hawaii under continental US
-hawaii_trans <- (hawaii_g - hawaii_centroid) * rot(-35 * pi/180) + hawaii_centroid + c(53, 4)
-hawaii <- hawaii %>% st_set_geometry(hawaii_trans) %>% st_set_crs(st_crs(state_borders))
-
-state_borders_final <- state_borders %>%
-  filter(!STATE %in% c('02', '15', '72', '')) %>%
-  rbind(alaska) %>%
-  rbind(hawaii)
-
-# Free Scales Version
 #facet_wrap does not accept free scales with coord_sf, so we have to go about it a different way
 us_counties_pct_red_till <- ggplot(us_counties_CSAF, aes(
   color = pct_cropland_reduced_tillage,
@@ -164,7 +85,7 @@ us_counties_pct_red_till <- ggplot(us_counties_CSAF, aes(
                         ),
                         name = "Percent of County Cropland Adopting Practice",
                         na.value = "#000000") +
-  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  geom_sf(data = us_states, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
   coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
   theme_void() + 
   labs(title = "Reduced Tillage") +
@@ -180,7 +101,7 @@ us_counties_pct_no_till <- ggplot(us_counties_CSAF, aes(
                         ),
                         name = "Percent of County Cropland Adopting Practice",
                         na.value = "#000000") +
-  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  geom_sf(data = us_states, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
   coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
   theme_void() + 
   labs(title = "No Till") +
@@ -196,7 +117,7 @@ us_counties_pct_cov_crop <- ggplot(us_counties_CSAF, aes(
                         ),
                         name = "Percent of County Cropland Adopting Practice",
                         na.value = "#000000") +
-  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  geom_sf(data = us_states, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
   coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
   theme_void() + 
   labs(title = "Cover Crop") +
@@ -212,7 +133,7 @@ us_counties_fund_red_till <- ggplot(us_counties_CSAF, aes(
                         ),
                         name = "Funding in Millions",
                         na.value = "#000000") +
-  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  geom_sf(data = us_states, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
   coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
   theme_void() + 
   labs(title = "") +
@@ -228,7 +149,7 @@ us_counties_fund_no_till <- ggplot(us_counties_CSAF, aes(
                         ),
                         name = "Funding in Millions",
                         na.value = "#000000") +
-  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  geom_sf(data = us_states, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
   coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
   theme_void() + 
   labs(title = "") +
@@ -244,7 +165,7 @@ us_counties_fund_cov_crop <- ggplot(us_counties_CSAF, aes(
                         ),
                         name = "Funding in Millions",
                         na.value = "#000000") +
-  geom_sf(data = state_borders_final, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
+  geom_sf(data = us_states, color = "darkgrey", fill = NA, size = 0.5) +  # Overlay state borders
   coord_sf(xlim = c(-128, -68), ylim = c(18, 50)) + # Adjust xlim to include Alaska
   theme_void() + 
   labs(title = "") +
@@ -257,3 +178,5 @@ patch_fund <- us_counties_fund_cov_crop + us_counties_fund_no_till + us_counties
 patch_all <- patch_pct / patch_fund
 
 patch_all
+
+ggsave("2022_free.pdf", patch_all, height = 9, width = 15)
