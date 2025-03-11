@@ -1,3 +1,10 @@
+########################################################################
+# Author: Anne Bell Carroll, Elinor Benami (elinor@vt.edu)
+# Date: # Sat Mar 11 5:35 2025 ------------------------------
+# Purpose: Clean data in preparation for analysis
+# Notes:
+########################################################################
+
 source("packages.R")
 source("1-load_data.R")
 
@@ -171,4 +178,46 @@ Census_Practices <- Census_Practices %>%
 rm(Census_No._Crop_Operations)
 rm(Census_Cropland_Acres)
 
+## us_counties
 
+# Rotation function
+rot <- function(a) matrix(c(cos(a), sin(a), -sin(a), cos(a)), 2, 2)
+
+# Function to change the position of AL and HI 
+move_al_hi <- function(df) {
+  # Alaska transformation
+  alaska <- df %>%
+    filter(STATE %in% "02")
+  alaska_g <- st_geometry(alaska)
+  alaska_centroid <- st_centroid(st_union(alaska_g))
+  
+  # Hawaii transformation
+  hawaii <- df %>%
+    filter(STATE %in% "15")
+  hawaii_g <- st_geometry(hawaii)
+  hawaii_centroid <- st_centroid(st_union(hawaii_g))
+  
+  # Transform Alaska geometry
+  alaska_trans <- (alaska_g - alaska_centroid) * rot(-1 * pi/180) / 2.3 + alaska_centroid + c(35, -40)
+  alaska <- alaska %>% st_set_geometry(alaska_trans) %>% st_set_crs(st_crs(df))
+  
+  # Transform Hawaii geometry
+  hawaii_trans <- (hawaii_g - hawaii_centroid) * rot(-35 * pi/180) + hawaii_centroid + c(53, 4)
+  hawaii <- hawaii %>% st_set_geometry(hawaii_trans) %>% st_set_crs(st_crs(df))
+  
+  # Combine transformed Alaska and Hawaii with the rest of the US counties
+  df <- df %>%
+    filter(!STATE %in% c('02', '15', '72', '')) %>%
+    rbind(alaska) %>%
+    rbind(hawaii)
+  
+  return(df)
+}
+
+# Use on us_counties
+us_counties <- move_al_hi(us_counties)
+
+## us_states
+
+# Move AL and HI for us_states
+us_states <- move_al_hi(us_states)
