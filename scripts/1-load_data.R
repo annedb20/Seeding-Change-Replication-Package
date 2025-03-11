@@ -119,3 +119,12 @@ Program_Funding_Levels <- get_dataframe_by_name(
   original = TRUE,
   .f = function(x) {read_xlsx(path = x, sheet = 1, skip = 1, n_max=7)}
 )
+
+# GeoJSON file
+us_counties <- get_dataframe_by_name(
+  filename = "US_County_Geometries.json",
+  dataset = "https://doi.org/10.7910/DVN/MMXD4Y",
+  server = "dataverse.harvard.edu",
+  original = TRUE,
+  .f = sf::read_sf
+)
