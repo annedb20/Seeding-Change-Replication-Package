@@ -1,6 +1,6 @@
 ---
 title: "README"
-author: "Anne Bell"
+author: "Anne Carroll"
 date: "2024-07-17"
 output: html_document
 ---
@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Data and selected code used to assess USDA financial assistance program funding in Seeding Change to Manage Climate: Growing Insights from Four USDA Programs to Support Climate-Smart Agriculture by Elinor Benami, Anne Bell, Kent D. Messer, Wei Zhang, and Michael Cecil. (link TBD)
+Data and selected code used to assess USDA financial assistance program funding in Seeding Change to Manage Climate: Growing Insights from Four USDA Programs to Support Climate-Smart Agriculture by Elinor Benami, Anne Carroll, Kent D. Messer, Wei Zhang, and Michael Cecil. (link TBD)
 
 ### Data Download
 
@@ -17,9 +17,9 @@ The full data download can be found [here](https://doi.org/10.7910/DVN/MMXD4Y).
 
 Contract Download Table - HUP.csv, Contract_Demographic_Download.csv, Contract_Political_Download.csv, Partnership_for_Climate_Smart_Commodities_Projects.xlsx, Practice_Political_Download.csv, and Producer Numbers by State.tab downloaded directly from sources below.
 
-PCSC_data_with_HUP_info retains the information from Partnership_for_Climate_Smart_Commodities_Projects.xlsx with a binary column representing whether the project explicitly states that 50% or more of producers will be HUP or small, AND/OR that 50% or more of its funds will support HUP or small producers. Column added by Anne Bell.
+PCSC_data_with_HUP_info retains the information from Partnership_for_Climate_Smart_Commodities_Projects.xlsx with a binary column representing whether the project explicitly states that 50% or more of producers will be HUP or small, AND/OR that 50% or more of its funds will support HUP or small producers. Column added by Anne Carroll.
 
-Program Funding and Outlays.tab is a manual creation derived from CBO data and projections, compiled by Anne Bell.
+Program Funding and Outlays.tab is a manual creation derived from CBO data and projections, compiled by Anne Carroll.
 
 Program Funding Levels is a manual creation derived from USDA Program Funding data, compiled by Kent D. Messer.
 
