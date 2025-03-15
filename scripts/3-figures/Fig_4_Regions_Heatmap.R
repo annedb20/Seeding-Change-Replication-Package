@@ -2,7 +2,7 @@
 # source("1-load_data.R")
 # source("2-clean_data.R")
 
-# Figure 3: Top 5 Practice Types by Region
+# Figure 4: Top 5 Practice Types by Region
 
 # Filter for programs of interest and state- and practice-specific information
 # (Annual Payments removed from consideration since they are not practice-specific)
