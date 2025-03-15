@@ -2,7 +2,7 @@ source("packages.R")
 source("1-load_data.R")
 source("2-clean_data.R")
 
-# Figure 9: Dollars Obligated by Program and Fiscal Year (2014-2023)
+# Figure A.1: Dollars Obligated by Program and Fiscal Year (2014-2023)
 
 # Generate a dataset that only shows the total annual values (dollars obligated, contracts) by program and state
 totals_state <- 
