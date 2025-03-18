@@ -39,7 +39,7 @@ Contract Download Table downloaded from first dataset on Download tab of the web
 
 [CRP USDA Program Funding Data](https://www.fsa.usda.gov/Assets/USDA-FSA-Public/usdafiles/Conservation/Excel/CRPHistoryState86-22.xlsx)
 
-[NASS Census data](https://quickstats.nass.usda.gov/results/22649D58-38F7-3929-8C15-FE100B451C33)
+[NASS Census data](https://quickstats.nass.usda.gov/)
 
 [State and County Geometries](https://eric.clst.org/tech/usgeojson/)
 
