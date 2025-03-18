@@ -23,6 +23,8 @@ Program Funding and Outlays.tab is a manual creation derived from CBO data and p
 
 Program Funding Levels is a manual creation derived from USDA Program Funding data, compiled by Kent D. Messer.
 
+State and county geometries downloaded from Eric Celeste's website, but originally converted from the United States Census Cartographic Boundary Files. 
+
 ### Data Sources
 
 [Partnerships for Climate Smart Commodities data](https://publicdashboards.dl.usda.gov/t/FPAC_PUB/views/PartnershipsForClimate-SmartCommodities/DataDownload?%3Aembed=y&%3AisGuestRedirectFromVizportal=y)
@@ -38,6 +40,8 @@ Contract Download Table downloaded from first dataset on Download tab of the web
 [CRP USDA Program Funding Data](https://www.fsa.usda.gov/Assets/USDA-FSA-Public/usdafiles/Conservation/Excel/CRPHistoryState86-22.xlsx)
 
 [NASS Census data](https://quickstats.nass.usda.gov/results/22649D58-38F7-3929-8C15-FE100B451C33)
+
+[State and County Geometries](https://eric.clst.org/tech/usgeojson/)
 
 ### State Groupings by Region
 
